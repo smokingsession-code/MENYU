@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Alert, Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
-import { PLANS } from "@/config/plans";
+import { PLANS, planHas } from "@/config/plans";
 import { billingSummary, needsAttention } from "@/lib/billing/status";
 import { getDashboardContext } from "@/lib/dashboard";
 import { formatDate } from "@/lib/dates";
@@ -21,9 +21,13 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
   const menuUrl = `${publicEnv.siteUrl}/r/${ctx.branch.slug}`;
 
   const supabase = await createClient();
-  const [{ count: items }, { count: tables }] = await Promise.all([
+  const pro = planHas(ctx.plan, "feedback");
+  const [{ count: items }, { count: tables }, { count: unread }] = await Promise.all([
     supabase.from("items").select("id", { count: "exact", head: true }).eq("menu_id", ctx.branch.menuId).is("deleted_at", null),
     supabase.from("tables").select("id", { count: "exact", head: true }).eq("branch_id", ctx.branch.id).is("deleted_at", null),
+    pro
+      ? supabase.from("feedback").select("id", { count: "exact", head: true }).eq("restaurant_id", restaurantId).is("read_at", null).is("deleted_at", null)
+      : Promise.resolve({ count: 0 }),
   ]);
 
   const steps = [
@@ -134,6 +138,42 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
           </>
         ) : null}
       </div>
+
+      {ctx.role !== "staff" && planHas(ctx.plan, "specials") ? (
+        <Card className="space-y-1">
+          <h2 className="text-lg font-extrabold">{t("home2.proTitle")}</h2>
+          <ul className="divide-y divide-line">
+            {[
+              { href: `${base}/specials`, title: t("home2.specials"), hint: t("home2.specialsHint"), badge: 0 },
+              { href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0 },
+              { href: `${base}/insights`, title: t("home2.insights"), hint: t("home2.insightsHint"), badge: 0 },
+            ].map((tool) => (
+              <li key={tool.href}>
+                <Link href={tool.href} className="flex min-h-14 items-center justify-between gap-3 py-2">
+                  <span>
+                    <span className="block font-bold">{tool.title}</span>
+                    <span className="block text-sm text-muted">{tool.hint}</span>
+                  </span>
+                  {tool.badge > 0 ? (
+                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold">{t("home2.feedbackUnread", { count: tool.badge })}</span>
+                  ) : (
+                    <span aria-hidden="true" className="text-xl text-muted">›</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+      {ctx.role !== "staff" && !planHas(ctx.plan, "specials") && ctx.plan !== "free" ? (
+        <Card className="space-y-2">
+          <h2 className="text-lg font-extrabold">{t("home2.proUpsellTitle")}</h2>
+          <p>{t("home2.proUpsellBody")}</p>
+          <ButtonLink href={`${base}/billing`} variant="outline" size="sm">
+            {t("home2.proUpsellCta")}
+          </ButtonLink>
+        </Card>
+      ) : null}
 
       {sub ? (
         <Card className="space-y-2">

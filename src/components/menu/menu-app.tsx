@@ -6,17 +6,22 @@ import { readableBrand, textOn, tint } from "@/lib/color";
 import { DAY_KEYS, formatClock, openStatus, type OpenStatus } from "@/lib/hours";
 import { imageSrcSet, imageUrl, pickWidth } from "@/lib/images/shared";
 import { formatUGX } from "@/lib/money";
-import { cartCount, cartTotal, lineKey, type CartLine, type OrderType } from "@/lib/order";
+import { buildTableMessage, cartCount, cartTotal, lineKey, type CartLine, type OrderType } from "@/lib/order";
 import { matchesQuery } from "@/lib/text";
 import { waLink } from "@/lib/whatsapp";
 import { startingPrice, type PublicItem, type PublicMenu } from "@/lib/menu/types";
 import { CartSheet } from "./cart-sheet";
+import { FeedbackSheet, PaySheet, SpecialsBanner } from "./extras";
 import { fill, refreshMenu, shouldAutoRefresh, track, useCart, useLanguage, useLiveMenu, useServiceWorker, useTableCode, type LiveState } from "./hooks";
-import { BagIcon, ChatIcon, CloseIcon, PhoneIcon, PinIcon, PlusIcon, SearchIcon } from "./icons";
+import { BagIcon, BellIcon, ChatIcon, CloseIcon, PhoneIcon, PinIcon, PlusIcon, ReceiptIcon, SearchIcon, WalletIcon } from "./icons";
 import { ItemSheet } from "./item-sheet";
 import { TagList } from "./tags";
 
 export type DinerStrings = (typeof enMessages)["diner"];
+
+const TABLE_ACTIONS_ID = "menu-table-actions";
+/** Shows the waiter buttons straight away when the link names a known table. */
+const TABLE_ACTIONS_SCRIPT = `(function(){var el=document.getElementById("${TABLE_ACTIONS_ID}");if(!el)return;var t=new URLSearchParams(location.search).get("t");var codes=JSON.parse(el.getAttribute("data-tables")||"[]");if(t&&codes.indexOf(t)>=0)el.hidden=false;})();`;
 export type Translate = (en: string, lg: string | null | undefined) => string;
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
@@ -82,6 +87,8 @@ export function MenuApp({
   const [query, setQuery] = useState("");
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [announce, setAnnounce] = useState("");
   const [demoNote, setDemoNote] = useState(false);
 
@@ -142,9 +149,17 @@ export function MenuApp({
   const count = cartCount(cart.lines);
   const total = cartTotal(cart.lines);
   useEffect(() => {
-    busy.current = count > 0 || openItemId !== null || cartOpen;
-  }, [count, openItemId, cartOpen]);
+    busy.current = count > 0 || openItemId !== null || cartOpen || payOpen || feedbackOpen;
+  }, [count, openItemId, cartOpen, payOpen, feedbackOpen]);
   const hello = fill(s.helloMessage, { restaurant: restaurant.name });
+  // "Call the waiter" and "Bring the bill" need to know the table.
+  const waiterPossible = features.waiter_call && Boolean(branch.whatsapp) && Object.keys(menu.tables).length > 0;
+  const canCallWaiter = waiterPossible && Boolean(tableLabel);
+  const momo = features.momo_pay ? branch.momo : null;
+  const tableAction = (type: "waiter_call" | "bill_request") => ({
+    href: branch.whatsapp && tableLabel ? waLink(branch.whatsapp, buildTableMessage(type === "waiter_call" ? s.waiterMessage : s.billMessage, tableLabel ?? undefined, "?")) : undefined,
+    onClick: () => track(slug, type, { table: tableCode }),
+  });
 
   return (
     <div style={style} className="mx-auto flex min-h-screen w-full max-w-2xl flex-col bg-paper">
@@ -224,6 +239,51 @@ export function MenuApp({
               external
             />
           </div>
+          {waiterPossible ? (
+            <>
+              {/* Shown only for a known table. The table is in the link, which
+                  React reads after the page loads; the inline script shows the
+                  row before it is drawn, so the menu does not jump. */}
+              <div
+                id={TABLE_ACTIONS_ID}
+                hidden={!canCallWaiter}
+                suppressHydrationWarning
+                data-tables={JSON.stringify(Object.keys(menu.tables))}
+                className="mt-2 grid grid-cols-2 gap-2"
+              >
+                <ContactButton
+                  {...tableAction("waiter_call")}
+                  demo={restaurant.is_demo}
+                  onDemo={() => setDemoNote(true)}
+                  label={s.waiter}
+                  icon={<BellIcon />}
+                  external
+                />
+                <ContactButton
+                  {...tableAction("bill_request")}
+                  demo={restaurant.is_demo}
+                  onDemo={() => setDemoNote(true)}
+                  label={s.bill}
+                  icon={<ReceiptIcon />}
+                  external
+                />
+              </div>
+              <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: TABLE_ACTIONS_SCRIPT }} />
+            </>
+          ) : null}
+          {momo ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPayOpen(true);
+                track(slug, "momo_view", { table: tableCode });
+              }}
+              className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-line bg-card font-bold"
+            >
+              <WalletIcon />
+              {s.payMomo}
+            </button>
+          ) : null}
           {demoNote ? <p className="mt-2 text-sm font-bold text-muted">{s.demoNoContact}</p> : null}
 
           {menu.has_luganda ? (
@@ -243,6 +303,10 @@ export function MenuApp({
           ) : null}
         </div>
       </header>
+
+      {features.specials && menu.specials.length ? (
+        <SpecialsBanner specials={menu.specials} canOrder={canOrder} onAdd={addFromSheet} s={s} tr={tr} />
+      ) : null}
 
       <StickyNav
         sections={sections}
@@ -281,6 +345,20 @@ export function MenuApp({
           </section>
         ))}
 
+        {features.feedback ? (
+          <section className="mt-10 rounded-2xl border-2 border-line bg-card p-4 text-center">
+            <p className="text-base">{s.feedbackPrompt}</p>
+            <button
+              type="button"
+              onClick={() => setFeedbackOpen(true)}
+              className="mt-3 min-h-12 rounded-xl px-5 font-extrabold"
+              style={{ background: "var(--brand)", color: "var(--on-brand)" }}
+            >
+              ★ {s.feedbackCta}
+            </button>
+          </section>
+        ) : null}
+
         {!features.hide_footer ? (
           <footer className="mt-10 text-center">
             <a href={`${homeUrl}/?ref=menu`} className="inline-flex min-h-11 items-center font-bold text-muted underline underline-offset-2">
@@ -313,17 +391,31 @@ export function MenuApp({
             className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl px-4 text-lg font-extrabold shadow-lg"
             style={{ background: "var(--brand)", color: "var(--on-brand)" }}
           >
-            <span className="flex items-center gap-2">
-              <BagIcon />
-              {s.viewOrder}
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="relative shrink-0">
+                <BagIcon />
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-2.5 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-card px-1 text-xs font-extrabold text-ink"
+                >
+                  {count}
+                </span>
+              </span>
+              <span className="truncate">{s.viewOrder}</span>
             </span>
-            <span>
-              {count === 1 ? s.oneItem : fill(s.itemsCount, { count })} · {formatUGX(total)}
+            {/* The count is a badge on screen; screen readers hear it in words. */}
+            <span className="shrink-0 whitespace-nowrap">
+              <span className="sr-only">{count === 1 ? s.oneItem : fill(s.itemsCount, { count })} · </span>
+              {formatUGX(total)}
             </span>
           </button>
         </div>
       ) : null}
 
+      {momo ? <PaySheet open={payOpen} onClose={() => setPayOpen(false)} momo={momo} total={total} s={s} /> : null}
+      {features.feedback ? (
+        <FeedbackSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} slug={slug} table={tableCode} s={s} />
+      ) : null}
       <ItemSheet
         item={openItem}
         open={openItemId !== null}
@@ -393,6 +485,7 @@ function ContactButton({
   external,
   demo,
   onDemo,
+  onClick,
 }: {
   href: string | undefined;
   label: string;
@@ -400,6 +493,8 @@ function ContactButton({
   external?: boolean;
   demo?: boolean;
   onDemo?: () => void;
+  /** Runs when the link really opens (not on the demo menu). */
+  onClick?: () => void;
 }) {
   const className =
     "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-line bg-card px-1 text-sm font-extrabold text-[var(--brand-text)]";
@@ -411,6 +506,8 @@ function ContactButton({
         if (demo) {
           e.preventDefault();
           onDemo?.();
+        } else {
+          onClick?.();
         }
       }}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}

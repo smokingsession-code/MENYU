@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { NavBar, type NavItem } from "@/components/dashboard/nav-bar";
+import { planHas } from "@/config/plans";
 import { getDashboardContext } from "@/lib/dashboard";
 import { getTranslator } from "@/lib/i18n";
 
@@ -16,6 +17,9 @@ async function DashboardNav({ params }: { params: Promise<{ restaurantId: string
   if (ctx.role !== "staff") {
     items.push({ href: `${base}/tables`, label: t("nav.tables"), icon: "tables" });
     items.push({ href: `${base}/profile`, label: t("nav.profile"), icon: "profile" });
+  } else if (planHas(ctx.plan, "feedback")) {
+    // Staff see feedback; owners reach it from the home screen.
+    items.push({ href: `${base}/feedback`, label: t("nav.feedback"), icon: "feedback" });
   }
   return <NavBar items={items} label={ctx.name} />;
 }

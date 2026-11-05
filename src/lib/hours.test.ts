@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatClock, kampalaClock, openStatus, todaysHours, type OpeningHours } from "./hours";
-import { isSpecialActive } from "./specials";
+import { isSpecialActive, specialOnAt, specialsScript } from "./specials";
 
 /** A Kampala wall-clock time as a Date (Kampala is UTC+3). */
 function kampala(iso: string): Date {
@@ -101,5 +101,22 @@ describe("isSpecialActive", () => {
     expect(isSpecialActive(limited, kampala("2026-11-02T12:00:00"))).toBe(false);
     expect(isSpecialActive(limited, kampala("2026-11-03T12:00:00"))).toBe(true);
     expect(isSpecialActive(limited, kampala("2026-11-05T12:00:00"))).toBe(false);
+  });
+});
+
+describe("specialOnAt as an inline script", () => {
+  it("is self-contained, so it works the same when turned into text and run on the phone", () => {
+    const copy = new Function(`return ${specialOnAt.toString()}`)() as typeof specialOnAt;
+    const at = (local: string) => new Date(`${local}+03:00`).getTime();
+    const cases: [number[], string, string, number][] = [
+      [[1, 2, 3, 4, 5], "07:00", "10:00", at("2026-11-02T08:00:00")],
+      [[1, 2, 3, 4, 5], "07:00", "10:00", at("2026-11-07T08:00:00")],
+      [[5, 6], "22:00", "02:00", at("2026-11-07T01:00:00")],
+      [[1], "00:00", "00:00", at("2026-11-02T23:59:00")],
+    ];
+    for (const [days, start, end, now] of cases) {
+      expect(copy(days, start, end, null, null, now)).toBe(specialOnAt(days, start, end, null, null, now));
+    }
+    expect(() => new Function(specialsScript("menu-specials"))).not.toThrow();
   });
 });

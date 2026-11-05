@@ -736,11 +736,20 @@ isOneToOne: false
 "reorder":
 { Args: { "p_ids": (string)[],"p_kind": string }; Returns: number
                            },
+"restaurant_insights":
+{ Args: { "p_days"?: number,"p_restaurant_id": string }; Returns: Json
+                           },
 "save_item":
 { Args: { "p_item": Json }; Returns: string
                            },
+"save_special":
+{ Args: { "p": Json }; Returns: string
+                           },
 "set_subscription":
 { Args: { "p": Json }; Returns: undefined
+                           },
+"submit_feedback":
+{ Args: { "p_comment"?: string,"p_rate_key"?: string,"p_rating": number,"p_slug": string,"p_table"?: string }; Returns: string
                            }
           }
           Enums: {

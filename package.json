@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "db:start": "supabase start -x studio,realtime,edge-runtime,logflare,vector,supavisor,imgproxy,postgres-meta",
     "db:reset": "supabase db reset && npm run seed",
-    "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts.tmp && grep -q '^export type Json' src/lib/supabase/database.types.ts.tmp && mv src/lib/supabase/database.types.ts.tmp src/lib/supabase/database.types.ts || (rm -f src/lib/supabase/database.types.ts.tmp; echo 'Type generation failed: is the local database running?' >&2; exit 1)",
     "seed": "tsx --conditions=react-server --env-file=.env.local scripts/seed.ts",
     "plans:sql": "tsx scripts/plans-sql.ts",
     "admin:add": "tsx --conditions=react-server --env-file=.env.local scripts/add-admin.ts",

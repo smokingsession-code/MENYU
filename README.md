@@ -22,8 +22,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 3 | Owner dashboard: menu editor, profile, tables, sold-out | Done |
 | 4 | Menu from a photo, review screen | Done |
 | 5 | Plans, limits, trials, manual billing, reminders, grace period | Done |
-| 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Next |
-| 7 | Admin: setup queue, agents, referrals, overview | |
+| 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Done |
+| 7 | Admin: setup queue, agents, referrals, overview | Next |
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | |
 | 9 | Flutterwave or Pesapal mobile money | |
 
@@ -161,6 +161,29 @@ ready-written WhatsApp reminder for each, and can run the job on demand.
 Owners see their plan, due date, how to pay (the business merchant codes
 from Admin > Settings), a "send us the transaction ID" WhatsApp button and
 their payment history. Staff never see billing.
+
+**Pro tools on the menu** (each shown only when the plan includes it):
+
+- *Specials and happy hours* are scheduled by day and time (Kampala) in
+  Dashboard > Specials. The menu page is cached, so the server cannot know
+  which special is on: every special is sent hidden, and a tiny inline script
+  (`specialOnAt` in `src/lib/specials.ts`, the same function the tests and
+  React use) shows the right ones as the browser reads them. Nothing moves
+  when the page finishes loading. Diners can add a special to their order.
+- *Call the waiter* and *Bring the bill* send a short WhatsApp message with
+  the table number, so they show only when the menu was opened from a table
+  QR code.
+- *Pay with Mobile Money* (Standard and Pro) shows the branch's MTN and
+  Airtel merchant codes with copy buttons and the order total.
+- *Private feedback*: 1 to 5 stars and a comment, through the rate-limited
+  `/api/feedback` route (`submit_feedback`: 3 an hour per phone per
+  restaurant). Owners and staff read it in Dashboard > Feedback with the
+  average rating; new feedback shows a count on the owner's home screen.
+- *Insights* (`restaurant_insights`, owners only): menu views, visitors,
+  WhatsApp orders, waiter calls, views per day, busiest hours, most viewed
+  dishes and tables over 7 or 30 Kampala days. The charts are plain HTML
+  rendered on the server, each with a table view. Crawlers and headless
+  browsers are never counted.
 
 **Money** is whole Ugandan shillings in integer `*_ugx` columns, shown as
 "UGX 15,000". Times are shown in Africa/Kampala.

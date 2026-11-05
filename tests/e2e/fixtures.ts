@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { test as base, expect, type Page } from "@playwright/test";
+import { service } from "./db";
 
 /** Chrome DevTools network presets. */
 export const NETWORK = {
@@ -14,8 +15,19 @@ export async function throttle(page: Page, profile: keyof typeof NETWORK = "fast
   return cdp;
 }
 
-/** Every page in these tests is throttled to 3G. */
-export const test = base.extend({
+/**
+ * Every page in these tests is throttled to 3G. Each test is a different
+ * person, so the per-address sign-in limit (20 codes per 15 minutes) starts
+ * fresh for each test; the per-phone limits still apply.
+ */
+export const test = base.extend<{ freshSignInLimits: void }>({
+  freshSignInLimits: [
+    async ({}, provide) => {
+      await service().from("rate_limits").delete().like("key", "otp-send:ip:%");
+      await provide();
+    },
+    { auto: true },
+  ],
   page: async ({ page }, provide) => {
     await throttle(page, "fast3g");
     await provide(page);
