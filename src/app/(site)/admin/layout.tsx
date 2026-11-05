@@ -26,6 +26,12 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/restaurants/new" className="flex min-h-11 items-center px-3 font-bold text-brand">
             {t("admin.nav.newRestaurant")}
           </Link>
+          <Link href="/admin/billing" className="flex min-h-11 items-center px-3 font-bold text-brand">
+            {t("admin.nav.billing")}
+          </Link>
+          <Link href="/admin/settings" className="flex min-h-11 items-center px-3 font-bold text-brand">
+            {t("admin.nav.settings")}
+          </Link>
         </div>
       </nav>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">

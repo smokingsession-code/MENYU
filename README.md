@@ -21,8 +21,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 2 | Diner menu, cart, WhatsApp ordering, QR codes and print PDF, demo data | Done |
 | 3 | Owner dashboard: menu editor, profile, tables, sold-out | Done |
 | 4 | Menu from a photo, review screen | Done |
-| 5 | Plans, limits, trials, manual billing, reminders, grace period | Next |
-| 6 | Specials, call the waiter, MoMo pay info, feedback, insights | |
+| 5 | Plans, limits, trials, manual billing, reminders, grace period | Done |
+| 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Next |
 | 7 | Admin: setup queue, agents, referrals, overview | |
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | |
 | 9 | Flutterwave or Pesapal mobile money | |
@@ -129,6 +129,39 @@ is marked failed after six minutes so the owner can try again. Photos are
 deleted once an import is published or discarded. Without
 `ANTHROPIC_API_KEY` the import page offers "Send it to us" instead.
 
+**Billing** (`src/lib/billing/`). The rules are pure functions in
+`status.ts`, unit tested and also used for what screens show:
+
+- New restaurants get a Standard trial (30 days by default; the admin sets
+  the default in Admin > Settings and can change any restaurant's dates).
+- When a trial or paid period ends unpaid, the restaurant is *overdue* but
+  keeps its plan for the grace period (7 days by default, per restaurant).
+  After that the daily job moves it to *Free*: the menu shows the first 30
+  dishes, no ordering and the Menyu footer. Nothing is deleted, and paying
+  brings everything back.
+- A plan payment buys whole months (or years for Standard). Renewals
+  continue from the due date, so paying early loses nothing and paying late
+  gains nothing; paying during the trial starts after it; a restaurant
+  already on Free starts again from the day it paid. Pro is charged per
+  branch.
+
+Payments are recorded through one function, `recordPayment()`, which
+computes the period and calls the `record_payment` database function. That
+function applies it atomically and refuses stale data (it compares the
+subscription's `updated_at`). It records each provider reference and each
+MoMo transaction ID only once. The admin records MoMo payments by hand
+today. Flutterwave or Pesapal (phase 9) implement the `PaymentProvider`
+interface in `src/lib/billing/providers/` and send confirmed payments to
+`/api/payments/[provider]`, which uses the same `recordPayment()`.
+
+The daily job is `/api/cron/billing`, scheduled in `vercel.json` (06:00
+Kampala time) and protected by `CRON_SECRET`. The admin billing page lists
+who is overdue, due within 7 days or recently moved to Free, with a
+ready-written WhatsApp reminder for each, and can run the job on demand.
+Owners see their plan, due date, how to pay (the business merchant codes
+from Admin > Settings), a "send us the transaction ID" WhatsApp button and
+their payment history. Staff never see billing.
+
 **Money** is whole Ugandan shillings in integer `*_ugx` columns, shown as
 "UGX 15,000". Times are shown in Africa/Kampala.
 
@@ -160,5 +193,8 @@ deleted once an import is published or discarded. Without
    per menu page at Opus 5.5 prices ($4 in / $20 out per million tokens);
    each import stores its token `usage`, so check real costs after the first
    few.
-7. **First admin**: sign in once with your phone, then
+7. **Billing**: set `CRON_SECRET` on Vercel (the daily billing job uses it),
+   then fill in your MoMo merchant codes and WhatsApp number in
+   Admin > Settings before the first trials end.
+8. **First admin**: sign in once with your phone, then
    `npm run admin:add -- 07xx xxx xxx` with `.env.local` pointing at production.

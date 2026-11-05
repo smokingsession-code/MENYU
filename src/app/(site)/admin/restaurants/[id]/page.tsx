@@ -3,12 +3,18 @@ import { notFound } from "next/navigation";
 import { Badge, Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
-import { PLANS, type PlanCode } from "@/config/plans";
+import { PaymentList, PlanForm, RecordPaymentForm, ReminderButton } from "@/components/admin/billing-forms";
+import { PLANS } from "@/config/plans";
+import { reminderMessage } from "@/lib/billing/reminder";
+import { billingSummary, reminderKind } from "@/lib/billing/status";
 import { formatDate } from "@/lib/dates";
 import { publicEnv } from "@/lib/env";
-import { getTranslator, type MessageKey } from "@/lib/i18n";
+import { getTranslator, sectionStrings, type MessageKey } from "@/lib/i18n";
+import { formatUGX } from "@/lib/money";
 import { formatPhoneLocal } from "@/lib/phone";
+import { getBillingSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
+import { waLink } from "@/lib/whatsapp";
 import { NewInviteForm } from "./invite-form";
 
 const t = getTranslator("en");
@@ -23,24 +29,43 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, created_at, menu_updated_at, agents(name, code), subscriptions(plan, status, trial_ends_at, paid_until), branches(id, slug, area, whatsapp, is_main), memberships(id, role, user_id, deleted_at), invitations(id, phone, email, role, expires_at, accepted_at, deleted_at)",
+      "id, name, created_at, menu_updated_at, agents(name, code), subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days, setup_fee_ugx, last_reminder_at, updated_at), branches(id, slug, area, whatsapp, is_main, deleted_at), memberships(id, role, user_id, deleted_at), invitations(id, phone, email, role, expires_at, accepted_at, deleted_at)",
     )
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
   if (!r) notFound();
 
-  const main = r.branches.find((b) => b.is_main) ?? r.branches[0];
+  const branches = r.branches.filter((b) => !b.deleted_at);
+  const main = branches.find((b) => b.is_main) ?? branches[0];
   const menuUrl = `${publicEnv.siteUrl}/r/${main?.slug}`;
-  const plan = (r.subscriptions?.plan ?? "free") as PlanCode;
-  const status = (r.subscriptions?.status ?? "free") as keyof typeof STATUS_TONE;
+  const sub = r.subscriptions;
   const members = r.memberships.filter((m) => !m.deleted_at);
   const pending = r.invitations.filter((i) => !i.accepted_at && !i.deleted_at && new Date(i.expires_at) > new Date());
 
   const memberIds = members.map((m) => m.user_id);
-  const { data: profiles } = memberIds.length
-    ? await supabase.from("profiles").select("id, full_name, phone, email").in("id", memberIds)
-    : { data: [] };
+  const [{ data: profiles }, { data: payments }, settings] = await Promise.all([
+    memberIds.length ? supabase.from("profiles").select("id, full_name, phone, email").in("id", memberIds) : Promise.resolve({ data: [] }),
+    supabase
+      .from("payments")
+      .select("id, kind, amount_ugx, method, transaction_id, paid_at, period_start, period_end, notes")
+      .eq("restaurant_id", r.id)
+      .eq("status", "succeeded")
+      .is("deleted_at", null)
+      .order("paid_at", { ascending: false })
+      .limit(50),
+    getBillingSettings(),
+  ]);
+  const summary = sub ? billingSummary(sub, new Date(), branches.length) : null;
+  const ownerProfile = profiles?.find((p) => members.some((m) => m.role === "owner" && m.user_id === p.id));
+  const kind = summary ? reminderKind(summary) : null;
+  const reminderPhone = main?.whatsapp ?? ownerProfile?.phone ?? null;
+  const reminder =
+    summary && kind && reminderPhone
+      ? waLink(reminderPhone, reminderMessage(t, { kind, summary, restaurant: r.name, ownerName: ownerProfile?.full_name, momo: settings.momo }))
+      : null;
+  const a = sectionStrings("en", "admin");
+  const b = sectionStrings("en", "billing");
 
   return (
     <div className="space-y-5">
@@ -67,32 +92,65 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
         <CopyButton text={menuUrl} label={t("common.copy")} copiedLabel={t("common.copied")} size="sm" />
       </Card>
 
-      <Card>
-        <dl className="grid grid-cols-2 gap-3">
-          <div>
-            <dt className="text-sm text-muted">{t("admin.detail.plan")}</dt>
-            <dd className="font-bold">{PLANS[plan].name}</dd>
-          </div>
-          <div>
-            <dt className="text-sm text-muted">{t("admin.detail.status")}</dt>
-            <dd>
-              <Badge tone={STATUS_TONE[status]}>{t(`admin.status.${status}` as MessageKey)}</Badge>
-            </dd>
-          </div>
-          {r.subscriptions?.trial_ends_at ? (
+      {sub && summary ? (
+        <Card id="billing" className="scroll-mt-4 space-y-5">
+          <h2 className="text-lg font-extrabold">{t("admin.detail.billingTitle")}</h2>
+          <dl className="grid grid-cols-2 gap-3">
             <div>
-              <dt className="text-sm text-muted">{t("admin.detail.trialEnds")}</dt>
-              <dd className="font-bold">{formatDate(r.subscriptions.trial_ends_at)}</dd>
+              <dt className="text-sm text-muted">{t("admin.detail.plan")}</dt>
+              <dd className="font-bold">{PLANS[summary.plan].name}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted">{t("admin.detail.status")}</dt>
+              <dd>
+                <Badge tone={STATUS_TONE[summary.status]}>{t(`admin.status.${summary.status}` as MessageKey)}</Badge>
+              </dd>
+            </div>
+            {summary.dueAt ? (
+              <div>
+                <dt className="text-sm text-muted">{summary.status === "trial" ? t("admin.detail.trialEnds") : t("admin.detail.paidUntil")}</dt>
+                <dd className="font-bold">{formatDate(summary.dueAt)}</dd>
+              </div>
+            ) : null}
+            {summary.amountUgx ? (
+              <div>
+                <dt className="text-sm text-muted">{t("admin.detail.amountDue")}</dt>
+                <dd className="font-bold">{formatUGX(summary.amountUgx)}</dd>
+              </div>
+            ) : null}
+            {summary.status === "overdue" && summary.graceEndsAt ? (
+              <div>
+                <dt className="text-sm text-muted">{t("admin.detail.graceEnds")}</dt>
+                <dd className="font-bold text-danger">{formatDate(summary.graceEndsAt)}</dd>
+              </div>
+            ) : null}
+            {sub.setup_fee_ugx ? (
+              <div>
+                <dt className="text-sm text-muted">{t("admin.detail.setupFee")}</dt>
+                <dd className="font-bold">{formatUGX(sub.setup_fee_ugx)}</dd>
+              </div>
+            ) : null}
+          </dl>
+          {reminder ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <ReminderButton restaurantId={r.id} href={reminder} label={t("admin.billing.remind")} />
+              {sub.last_reminder_at ? <span className="text-sm text-muted">{t("admin.billing.reminded", { date: formatDate(sub.last_reminder_at) })}</span> : null}
             </div>
           ) : null}
-          {r.subscriptions?.paid_until ? (
-            <div>
-              <dt className="text-sm text-muted">{t("admin.detail.paidUntil")}</dt>
-              <dd className="font-bold">{formatDate(r.subscriptions.paid_until)}</dd>
-            </div>
-          ) : null}
-        </dl>
-      </Card>
+          <section className="space-y-3 border-t border-line pt-4">
+            <h3 className="font-extrabold">{t("admin.detail.recordPayment")}</h3>
+            <RecordPaymentForm restaurantId={r.id} subscription={sub} branches={branches.length} a={a} b={b} />
+          </section>
+          <section className="space-y-3 border-t border-line pt-4">
+            <h3 className="font-extrabold">{t("admin.detail.payments")}</h3>
+            <PaymentList payments={payments ?? []} a={a} b={b} />
+          </section>
+          <section className="space-y-3 border-t border-line pt-4">
+            <h3 className="font-extrabold">{t("admin.detail.planTitle")}</h3>
+            <PlanForm key={sub.updated_at} restaurantId={r.id} subscription={sub} updatedAt={sub.updated_at} a={a} />
+          </section>
+        </Card>
+      ) : null}
 
       <Card className="space-y-3">
         <h2 className="text-lg font-extrabold">{t("admin.detail.members")}</h2>

@@ -694,6 +694,9 @@ isOneToOne: false
             "add_tables":
 { Args: { "p_branch_id": string,"p_labels": (string)[] }; Returns: number
                            },
+"apply_billing_status":
+{ Args: { "p_from": string,"p_restaurant_id": string,"p_to": string }; Returns: boolean
+                           },
 "bulk_adjust_prices":
 { Args: { "p_category_ids": (string)[],"p_percent": number,"p_restaurant_id": string,"p_round"?: number }; Returns: number
                            },
@@ -724,11 +727,20 @@ isOneToOne: false
 "record_event":
 { Args: { "p_item"?: string,"p_rate_key"?: string,"p_session"?: string,"p_slug": string,"p_table"?: string,"p_type": string }; Returns: Json
                            },
+"record_payment":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"remove_payment":
+{ Args: { "p": Json }; Returns: undefined
+                           },
 "reorder":
 { Args: { "p_ids": (string)[],"p_kind": string }; Returns: number
                            },
 "save_item":
 { Args: { "p_item": Json }; Returns: string
+                           },
+"set_subscription":
+{ Args: { "p": Json }; Returns: undefined
                            }
           }
           Enums: {

@@ -3,8 +3,10 @@ import { Alert, Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { PLANS } from "@/config/plans";
+import { billingSummary, needsAttention } from "@/lib/billing/status";
 import { getDashboardContext } from "@/lib/dashboard";
 import { formatDate } from "@/lib/dates";
+import { formatUGX } from "@/lib/money";
 import { publicEnv } from "@/lib/env";
 import { weeklyRanges } from "@/lib/hours";
 import { getTranslator, type MessageKey } from "@/lib/i18n";
@@ -34,11 +36,35 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
   const remaining = steps.filter((s) => !s.done);
   const sub = ctx.subscription;
   const statusDate = sub?.status === "trial" ? sub.trial_ends_at : sub?.paid_until;
+  const billing = sub ? billingSummary(sub, new Date(), ctx.branches.length) : null;
+  const limit = PLANS.free.limits.items ?? 0;
+  const banner =
+    billing && ctx.role !== "staff" && needsAttention(billing)
+      ? {
+          tone: billing.status === "overdue" || billing.lapsed ? ("error" as const) : ("warning" as const),
+          text:
+            billing.status === "trial"
+              ? t("billing.banner.trial", { date: formatDate(billing.dueAt), amount: formatUGX(billing.amountUgx ?? 0) })
+              : billing.status === "active"
+                ? t("billing.banner.due", { date: formatDate(billing.dueAt), amount: formatUGX(billing.amountUgx ?? 0) })
+                : billing.status === "overdue"
+                  ? t("billing.banner.overdue", { amount: formatUGX(billing.amountUgx ?? 0), grace: formatDate(billing.graceEndsAt) })
+                  : t("billing.banner.lapsed", { limit }),
+        }
+      : null;
 
   return (
     <div className="space-y-5">
       {ctx.role === "admin" ? <Alert tone="info">{t("home2.adminBanner")}</Alert> : null}
       <h1 className="text-2xl font-extrabold">{ctx.name}</h1>
+      {banner ? (
+        <Alert tone={banner.tone}>
+          {banner.text}{" "}
+          <Link href={`${base}/billing`} className="underline">
+            {t("billing.banner.cta")}
+          </Link>
+        </Alert>
+      ) : null}
 
       <Card className="space-y-3">
         <p className="font-bold">{t("dashboard.menuLink")}</p>
@@ -110,9 +136,12 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
       </div>
 
       {sub ? (
-        <Card className="space-y-1">
+        <Card className="space-y-2">
           <p className="font-bold">{t("dashboard.planLine", { plan: PLANS[ctx.plan].name })}</p>
           <p className="text-muted">{t(`dashboard.status.${sub.status}` as MessageKey, { date: formatDate(statusDate) })}</p>
+          <ButtonLink href={`${base}/billing`} variant="outline" size="sm">
+            {t("billing.banner.cta")}
+          </ButtonLink>
         </Card>
       ) : null}
     </div>

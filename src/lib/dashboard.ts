@@ -43,7 +43,14 @@ export interface DashboardContext {
   priceRange: number | null;
   plan: PlanCode;
   /** Billing details, for owners and admins only. */
-  subscription: { plan: string; status: string; trial_ends_at: string | null; paid_until: string | null } | null;
+  subscription: {
+    plan: string;
+    status: string;
+    billing_interval: string;
+    trial_ends_at: string | null;
+    paid_until: string | null;
+    grace_days: number;
+  } | null;
   branches: DashboardBranch[];
   branch: DashboardBranch;
   canEditMenu: boolean;
@@ -65,7 +72,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, description, brand_color, logo, cover, cuisines, price_range, is_demo, subscriptions(plan, status, trial_ends_at, paid_until), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
+      "id, name, description, brand_color, logo, cover, cuisines, price_range, is_demo, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
     )
     .eq("id", restaurantId)
     .is("deleted_at", null)
