@@ -81,4 +81,6 @@ export async function signInWithPhone(page: Page, digits: string, local: string)
   const code = await smsCode(digits, since);
   await page.getByLabel("6-digit code").fill(code);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  // Wait until the session cookie is set and we have left the sign-in page.
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 30_000 });
 }

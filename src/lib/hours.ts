@@ -109,3 +109,31 @@ export function todaysHours(hours: OpeningHours | null | undefined, now: Date): 
     .filter(Boolean)
     .join(", ");
 }
+
+/**
+ * Checks hours from a form: every day present, each range two valid times,
+ * at most three ranges a day. Times are padded ("7:30" -> "07:30").
+ */
+export function normaliseHours(input: unknown): { ok: true; hours: Record<DayKey, [string, string][]> } | { ok: false } {
+  if (!input || typeof input !== "object") return { ok: false };
+  const source = input as Record<string, unknown>;
+  const hours = {} as Record<DayKey, [string, string][]>;
+  for (const day of DAY_KEYS) {
+    const ranges = source[day] ?? [];
+    if (!Array.isArray(ranges) || ranges.length > 3) return { ok: false };
+    hours[day] = [];
+    for (const range of ranges) {
+      if (!Array.isArray(range) || range.length !== 2) return { ok: false };
+      const open = typeof range[0] === "string" ? parseTime(range[0]) : null;
+      const close = typeof range[1] === "string" ? parseTime(range[1]) : null;
+      if (open === null || close === null) return { ok: false };
+      hours[day].push([toClock(open), toClock(close)]);
+    }
+  }
+  return { ok: true, hours };
+}
+
+function toClock(minutes: number): string {
+  const m = minutes % MINUTES_PER_DAY;
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}

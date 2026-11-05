@@ -11,7 +11,7 @@ import { matchesQuery } from "@/lib/text";
 import { waLink } from "@/lib/whatsapp";
 import { startingPrice, type PublicItem, type PublicMenu } from "@/lib/menu/types";
 import { CartSheet } from "./cart-sheet";
-import { fill, track, useCart, useLanguage, useLiveMenu, useServiceWorker, useTableCode, type LiveState } from "./hooks";
+import { fill, refreshMenu, shouldAutoRefresh, track, useCart, useLanguage, useLiveMenu, useServiceWorker, useTableCode, type LiveState } from "./hooks";
 import { BagIcon, ChatIcon, CloseIcon, PhoneIcon, PinIcon, PlusIcon, SearchIcon } from "./icons";
 import { ItemSheet } from "./item-sheet";
 import { TagList } from "./tags";
@@ -60,9 +60,14 @@ export function MenuApp({
     () => new Set(menu.categories.flatMap((c) => c.items.filter((i) => i.sold_out).map((i) => i.id))),
   );
   const [stale, setStale] = useState(false);
+  // Sold-out changes apply in place. Other changes need the new page: fetch
+  // it straight away if the diner has not started an order, else offer it.
+  const busy = useRef(false);
   useLiveMenu(slug, tableCode, ready, (live: LiveState) => {
     setSoldOut(new Set(live.sold_out));
-    if (live.version > menu.version) setStale(true);
+    if (live.version <= menu.version) return;
+    if (!busy.current && shouldAutoRefresh(slug, live.version)) refreshMenu();
+    else setStale(true);
   });
   useServiceWorker();
 
@@ -136,6 +141,9 @@ export function MenuApp({
 
   const count = cartCount(cart.lines);
   const total = cartTotal(cart.lines);
+  useEffect(() => {
+    busy.current = count > 0 || openItemId !== null || cartOpen;
+  }, [count, openItemId, cartOpen]);
   const hello = fill(s.helloMessage, { restaurant: restaurant.name });
 
   return (
@@ -290,7 +298,7 @@ export function MenuApp({
         <div className={`fixed inset-x-0 z-30 mx-auto flex max-w-2xl justify-center px-4 ${count > 0 ? "bottom-24" : "bottom-4"}`}>
           <div className="flex w-full items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-lg">
             <span className="font-bold">{s.menuChanged}</span>
-            <button type="button" onClick={() => window.location.reload()} className="min-h-11 rounded-xl bg-white px-4 font-extrabold text-ink">
+            <button type="button" onClick={() => refreshMenu()} className="min-h-11 rounded-xl bg-white px-4 font-extrabold text-ink">
               {s.refresh}
             </button>
           </div>

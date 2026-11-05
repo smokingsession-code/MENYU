@@ -7,7 +7,7 @@ import { lineKey, unitPrice, type CartLine } from "@/lib/order";
 import { addonsOf, sizesOf, type PublicItem } from "@/lib/menu/types";
 import type { DinerStrings, Translate } from "./menu-app";
 import { MinusIcon, PlusIcon } from "./icons";
-import { Sheet } from "./sheet";
+import { Sheet } from "@/components/ui/sheet";
 import { TagList } from "./tags";
 
 export function ItemSheet({

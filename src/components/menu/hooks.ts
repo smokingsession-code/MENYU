@@ -155,3 +155,36 @@ export function useServiceWorker() {
     else window.addEventListener("load", register, { once: true });
   }, []);
 }
+
+/** Must match PAGES in public/sw.js. */
+const SW_PAGE_CACHE = "menyu-pages-v1";
+
+/**
+ * Loads the latest menu from the network into the phone's cache, then
+ * reloads. Reloading alone could show the cached (old) copy again.
+ */
+export async function refreshMenu(): Promise<void> {
+  try {
+    const url = `${window.location.origin}${window.location.pathname}`;
+    const response = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    if (response.ok && "caches" in window) {
+      const cache = await caches.open(SW_PAGE_CACHE);
+      await cache.put(new Request(url), response.clone());
+    }
+  } catch {
+    // Offline: the reload shows what we have.
+  }
+  window.location.reload();
+}
+
+/** Auto-refresh at most once per menu version, so a slow network can never loop. */
+export function shouldAutoRefresh(slug: string, version: number): boolean {
+  const key = `menyu:refreshed:${slug}`;
+  try {
+    if (Number(window.sessionStorage.getItem(key)) >= version) return false;
+    window.sessionStorage.setItem(key, String(version));
+    return true;
+  } catch {
+    return false;
+  }
+}

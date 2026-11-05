@@ -17,8 +17,11 @@ export default async function DashboardHome() {
     return (
       <div className="space-y-5">
         <h1 className="text-2xl font-extrabold">{t("dashboard.noneTitle")}</h1>
-        <Card>
+        <Card className="space-y-4">
           <p className="text-lg">{t("dashboard.noneBody")}</p>
+          <ButtonLink href="/onboarding" size="lg" className="w-full">
+            {t("dashboard.startOwn")}
+          </ButtonLink>
         </Card>
         {admin ? (
           <ButtonLink href="/admin" variant="brand">

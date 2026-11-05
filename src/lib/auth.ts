@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export interface SessionUser {
@@ -11,6 +12,9 @@ export interface SessionUser {
 
 /** The signed-in user, verified from the session JWT. Null when signed out. */
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+  // Checking the session reads the clock (token expiry), so it must wait for
+  // a real request rather than run while Next.js prerenders the page shell.
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;

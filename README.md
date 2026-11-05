@@ -19,8 +19,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | --- | --- | --- |
 | 1 | Setup, data model, RLS, auth, admin creates a restaurant | Done |
 | 2 | Diner menu, cart, WhatsApp ordering, QR codes and print PDF, demo data | Done |
-| 3 | Owner dashboard: menu editor, profile, tables, sold-out | Next |
-| 4 | Menu from a photo, review screen | |
+| 3 | Owner dashboard: menu editor, profile, tables, sold-out | Done |
+| 4 | Menu from a photo, review screen | Next |
 | 5 | Plans, limits, trials, manual billing, reminders, grace period | |
 | 6 | Specials, call the waiter, MoMo pay info, feedback, insights | |
 | 7 | Admin: setup queue, agents, referrals, overview | |
@@ -93,8 +93,9 @@ number (`?t=`) is read in the browser, so one cached page serves every table.
 A service worker keeps menus on the phone (a second scan opens instantly,
 even offline), and each view checks the live sold-out list in the same
 request that records the visit. Budget: under 200 KB before images (about
-181 KB today, first paint about 2.2 s on slow 3G); menus use the phone's
-own font rather than downloading Nunito.
+174 KB today, first paint about 2.2 s on slow 3G). Menus get their own small
+stylesheet (`src/app/menu.css`) and use the phone's font; Menyu's pages use
+`src/app/site.css` with Nunito.
 
 **Money** is whole Ugandan shillings in integer `*_ugx` columns, shown as
 "UGX 15,000". Times are shown in Africa/Kampala.

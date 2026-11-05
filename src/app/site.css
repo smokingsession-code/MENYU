@@ -1,0 +1,24 @@
+/*
+ * Styles for Menyu's own pages (home, sign-in, dashboard, admin). Tailwind
+ * only scans these folders, so menu pages never carry dashboard styles.
+ */
+@import "tailwindcss" source(none);
+@source "./layout.tsx";
+@source "./global-not-found.tsx";
+@source "./(site)";
+@source "../components";
+@import "./theme.css";
+
+/* The brand font, only on Menyu's own pages (diner menus use the phone's
+   font). The bundler fingerprints the file so browsers cache it for good. */
+@font-face {
+  font-family: "Nunito";
+  src: url("../fonts/nunito-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Nunito", ui-rounded, "Segoe UI", Roboto, system-ui, sans-serif;
+}

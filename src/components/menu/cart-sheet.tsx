@@ -9,7 +9,7 @@ import { waLink } from "@/lib/whatsapp";
 import { fill, track } from "./hooks";
 import { ChatIcon, MinusIcon, PlusIcon } from "./icons";
 import type { DinerStrings } from "./menu-app";
-import { Sheet } from "./sheet";
+import { Sheet } from "@/components/ui/sheet";
 
 interface Props {
   open: boolean;

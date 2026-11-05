@@ -62,3 +62,21 @@ export async function createMenuFixture(options: {
   await db.from("tables").insert({ restaurant_id: r.id, branch_id: branch!.id, label: "7", code: "7", sort_order: 0 });
   return { restaurantId: r.id, branchId: branch!.id, slug, name };
 }
+
+/** A confirmed user with a phone number, linked to a restaurant. */
+export async function createMember(restaurantId: string, role: "owner" | "staff" = "owner") {
+  const db = service();
+  const rest = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
+  const digits = `25678${rest}`;
+  const { data, error } = await db.auth.admin.createUser({ phone: digits, phone_confirm: true });
+  if (error) throw error;
+  const { error: m } = await db.from("memberships").insert({ user_id: data.user.id, restaurant_id: restaurantId, role });
+  if (m) throw m;
+  return { userId: data.user.id, digits, local: `078${rest}` };
+}
+
+/** A phone number nobody has used yet (for signup tests). */
+export function freshPhone() {
+  const rest = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
+  return { digits: `25675${rest}`, local: `075${rest}` };
+}

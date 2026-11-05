@@ -1,0 +1,16 @@
+/*
+ * Styles for diner menus only: the smallest possible stylesheet for slow,
+ * costly mobile data (it is inlined into every menu page). No web font: the
+ * phone's own font costs nothing to download.
+ */
+@import "tailwindcss" source(none);
+@source "./layout.tsx";
+@source "./r";
+@source "../components/menu";
+@source "../components/ui/sheet.tsx";
+@source "../components/ui/button.tsx";
+@import "./theme.css";
+
+@theme {
+  --font-sans: ui-rounded, "Segoe UI", Roboto, system-ui, sans-serif;
+}

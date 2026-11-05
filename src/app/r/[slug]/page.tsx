@@ -62,6 +62,20 @@ export async function generateMetadata({ params }: PageProps<"/r/[slug]">): Prom
   };
 }
 
+/** Only Luganda strings a translator has filled in (empty ones fall back to English). */
+function filledIn<T extends object>(tree: T): Partial<T> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(tree)) {
+    if (typeof value === "string") {
+      if (value.trim()) out[key] = value;
+    } else if (value && typeof value === "object") {
+      const nested = filledIn(value as object);
+      if (nested && Object.keys(nested).length) out[key] = nested;
+    }
+  }
+  return Object.keys(out).length ? (out as Partial<T>) : undefined;
+}
+
 function jsonLd(menu: PublicMenu) {
   const { restaurant, branch } = menu;
   return {
@@ -75,19 +89,10 @@ function jsonLd(menu: PublicMenu) {
       : undefined,
     geo: branch.lat !== null && branch.lng !== null ? { "@type": "GeoCoordinates", latitude: branch.lat, longitude: branch.lng } : undefined,
     telephone: branch.phone && !restaurant.is_demo ? `+${branch.phone}` : undefined,
-    hasMenu: {
-      "@type": "Menu",
-      hasMenuSection: menu.categories.map((c) => ({
-        "@type": "MenuSection",
-        name: c.name,
-        hasMenuItem: c.items.map((i) => ({
-          "@type": "MenuItem",
-          name: i.name,
-          description: i.description ?? undefined,
-          offers: i.price !== null ? { "@type": "Offer", price: i.price, priceCurrency: "UGX" } : undefined,
-        })),
-      })),
-    },
+    // The menu itself is the page; listing every dish again here would
+    // add kilobytes to every scan for little search benefit.
+    hasMenu: `${publicEnv.siteUrl}/r/${branch.slug}`,
+    priceRange: restaurant.price_range ? "UGX".repeat(restaurant.price_range) : undefined,
   };
 }
 
@@ -105,7 +110,7 @@ export default async function MenuPage({ params }: PageProps<"/r/[slug]">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(menu)).replace(/</g, "\\u003c") }}
         />
       ) : null}
-      <MenuApp menu={menu} strings={en.diner} lgStrings={lg.diner} brandName={BRAND.name} homeUrl={publicEnv.siteUrl} />
+      <MenuApp menu={menu} strings={en.diner} lgStrings={filledIn(lg.diner)} brandName={BRAND.name} homeUrl={publicEnv.siteUrl} />
     </>
   );
 }

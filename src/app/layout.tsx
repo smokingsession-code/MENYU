@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { BRAND } from "@/config/brand";
 import { publicEnv } from "@/lib/env";
-import "./globals.css";
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),

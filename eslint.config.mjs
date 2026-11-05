@@ -8,7 +8,7 @@ const eslintConfig = defineConfig([
   {
     // Menu images are pre-sized WebP files in Supabase Storage (see
     // src/lib/images), so next/image (and its per-image cost) is not needed.
-    files: ["src/components/menu/**"],
+    files: ["src/components/menu/**", "src/components/dashboard/**"],
     rules: { "@next/next/no-img-element": "off" },
   },
   // Override default ignores of eslint-config-next.

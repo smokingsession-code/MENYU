@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { CloseIcon } from "./icons";
+import { CloseIcon } from "@/components/menu/icons";
 
 /**
  * Bottom sheet built on <dialog> (focus trap, Escape and screen-reader

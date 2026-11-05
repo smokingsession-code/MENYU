@@ -11,9 +11,14 @@ export function menuTag(slug: string) {
   return `menu:${slug}`;
 }
 
+/** One tag per restaurant, so an edit expires every branch's menu at once. */
+export function restaurantMenuTag(restaurantId: string) {
+  return `menu-r:${restaurantId}`;
+}
+
 /**
  * The public menu for a branch slug, cached and shared by every diner.
- * Owner edits expire it at once through its tag (see revalidateMenu); the
+ * Owner edits expire it at once through its tag (see expireMenu); the
  * time-based lifetime is only a safety net for changes made elsewhere.
  */
 export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
@@ -29,5 +34,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   });
   const { data, error } = await supabase.rpc("get_public_menu", { p_slug: slug });
   if (error) throw new Error(`get_public_menu failed: ${error.message}`);
-  return (data as unknown as PublicMenu | null) ?? null;
+  const menu = (data as unknown as PublicMenu | null) ?? null;
+  if (menu) cacheTag(restaurantMenuTag(menu.restaurant.id));
+  return menu;
 }

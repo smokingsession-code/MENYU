@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     // paints, which saves about two seconds on slow 3G. Tailwind's CSS is
     // small, and the menu page (with its styles) is cached on the phone.
     inlineCss: true,
+    // A stand-alone 404 for unknown URLs. Without it, the root not-found
+    // boundary (and its site stylesheet) would ship inside every menu page.
+    globalNotFound: true,
   },
   // Fonts read from disk when building QR code PDFs.
   outputFileTracingIncludes: {

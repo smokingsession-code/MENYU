@@ -59,6 +59,25 @@ export function hasLugandaUi(): boolean {
   return walk(lg);
 }
 
+type Section = keyof Messages;
+
+/**
+ * Every string in one section, translated and flattened ("errors.invalid"),
+ * for client components that need a whole screen's worth of text.
+ */
+export function sectionStrings(locale: Locale, section: Section): Record<string, string> {
+  const out: Record<string, string> = {};
+  const walk = (node: unknown, prefix: string) => {
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (typeof value === "string") out[path] = translate(locale, `${section}.${path}` as MessageKey);
+      else walk(value, path);
+    }
+  };
+  walk(en[section], "");
+  return out;
+}
+
 /**
  * Picks the strings a client component needs, already translated, so the
  * browser never downloads the whole catalogue.
