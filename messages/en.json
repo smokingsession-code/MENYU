@@ -1,0 +1,189 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close",
+    "loading": "Loading…",
+    "signOut": "Sign out",
+    "tryAgain": "Try again",
+    "optional": "optional",
+    "required": "Required",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorOffline": "You seem to be offline. Check your connection and try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "This page doesn't exist or has moved.",
+    "goHome": "Go to the home page",
+    "languageEnglish": "English",
+    "languageLuganda": "Luganda"
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Manage your menu from your phone.",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "0772 123 456",
+    "phoneHint": "We'll send you a 6-digit code by SMS.",
+    "sendCode": "Send code",
+    "sending": "Sending…",
+    "useEmail": "Use email instead",
+    "usePhone": "Use phone number instead",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "emailHint": "We'll email you a 6-digit code.",
+    "codeLabel": "6-digit code",
+    "codeSentPhone": "We sent a code to {phone}.",
+    "codeSentEmail": "We sent a code to {email}.",
+    "verify": "Sign in",
+    "verifying": "Signing in…",
+    "resend": "Send a new code",
+    "resendIn": "Send a new code in {seconds}s",
+    "changeNumber": "Change number",
+    "changeEmail": "Change email",
+    "devHint": "Development: the code is printed in the server terminal.",
+    "errors": {
+      "invalidPhone": "Enter a valid Ugandan phone number, like 0772 123 456.",
+      "phoneCountry": "SMS codes only go to Ugandan numbers. Use email instead.",
+      "invalidEmail": "Enter a valid email address.",
+      "invalidCode": "That code is wrong or has expired. Check the message and try again.",
+      "tooMany": "Too many tries. Wait a few minutes and try again.",
+      "smsFailed": "We couldn't send the SMS right now. Try again, or use email instead.",
+      "emailFailed": "We couldn't send the email right now. Please try again."
+    }
+  },
+  "sms": {
+    "signInCode": "Your {brand} code is {code}. It expires in 5 minutes."
+  },
+  "invite": {
+    "title": "You're invited",
+    "bodyOwner": "You've been invited to manage {restaurant} on {brand}.",
+    "bodyStaff": "You've been invited to help at {restaurant} on {brand}.",
+    "phoneHint": "Sign in with the phone number ending in {digits}.",
+    "emailHint": "Sign in with the email {email}.",
+    "cta": "Sign in to accept",
+    "expired": "This invite has expired. Ask for a new one.",
+    "revoked": "This invite was cancelled. Ask for a new one.",
+    "accepted": "This invite has already been used. Sign in to continue.",
+    "notFound": "This invite link isn't valid. Check you copied all of it."
+  },
+  "dashboard": {
+    "title": "Your restaurants",
+    "pick": "Choose a restaurant",
+    "noneTitle": "No restaurant yet",
+    "noneBody": "If someone from {brand} set up your menu, ask them to send you a sign-in link. Use the phone number they have for you.",
+    "startOwn": "Set up my restaurant",
+    "openMenu": "Open my menu",
+    "roleOwner": "Owner",
+    "roleStaff": "Staff",
+    "comingSoon": "Menu editing, tables and QR codes are being added here next.",
+    "menuLink": "Your menu link",
+    "planLine": "Plan: {plan}",
+    "status": {
+      "trial": "Free trial until {date}",
+      "active": "Paid until {date}",
+      "overdue": "Payment overdue since {date}",
+      "free": "Free plan"
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "nav": {
+      "restaurants": "Restaurants",
+      "newRestaurant": "New restaurant"
+    },
+    "restaurants": {
+      "title": "Restaurants",
+      "count": "{count} restaurants",
+      "searchPlaceholder": "Search by name or area",
+      "empty": "No restaurants yet.",
+      "noMatches": "No restaurants match \"{query}\".",
+      "columns": {
+        "name": "Restaurant",
+        "plan": "Plan",
+        "status": "Status",
+        "area": "Area",
+        "agent": "Agent",
+        "lastUpdate": "Last menu update"
+      },
+      "never": "Never",
+      "noAgent": "—"
+    },
+    "status": {
+      "trial": "Trial",
+      "active": "Active",
+      "overdue": "Overdue",
+      "free": "Free"
+    },
+    "create": {
+      "title": "New restaurant",
+      "intro": "Create the restaurant, then send the owner their sign-in link on WhatsApp.",
+      "name": "Restaurant name",
+      "namePlaceholder": "Kijani Café",
+      "area": "Area",
+      "areaPlaceholder": "Ntinda",
+      "whatsapp": "Restaurant WhatsApp number",
+      "whatsappHint": "Orders from the menu go to this number.",
+      "ownerSection": "Owner",
+      "ownerName": "Owner's name",
+      "ownerPhone": "Owner's phone number",
+      "ownerPhoneHint": "They sign in with this number.",
+      "ownerEmail": "Owner's email",
+      "ownerEmailHint": "Only if they prefer email sign-in.",
+      "trialDays": "Free trial (days)",
+      "trialDaysHint": "Standard plan trial. 0 starts them on Free.",
+      "agentCode": "Agent code",
+      "submit": "Create restaurant",
+      "submitting": "Creating…",
+      "errors": {
+        "name": "Enter the restaurant's name (at least 2 letters).",
+        "area": "Enter the area, like Ntinda or Kira.",
+        "whatsapp": "Enter a valid WhatsApp number, like 0772 123 456.",
+        "ownerPhone": "Enter a valid phone number for the owner.",
+        "ownerEmail": "Enter a valid email for the owner.",
+        "ownerContact": "Add the owner's phone number (or email) so they can sign in.",
+        "trialDays": "Trial days must be between 0 and 365.",
+        "agentCode": "No active agent has that code.",
+        "failed": "The restaurant could not be created. Please try again."
+      }
+    },
+    "created": {
+      "title": "{restaurant} is ready",
+      "body": "Send the owner their sign-in link. It works once and expires in 14 days.",
+      "menuLink": "Menu link",
+      "inviteLink": "Owner sign-in link",
+      "sendWhatsApp": "Send on WhatsApp",
+      "copyLink": "Copy link",
+      "openRestaurant": "Open restaurant",
+      "createAnother": "Create another"
+    },
+    "inviteMessage": "Hello {name}! Your {brand} menu for {restaurant} is ready: {menuUrl}\n\nTo make changes, sign in here with this number ({phone}): {inviteUrl}",
+    "inviteMessageEmail": "Hello {name}! Your {brand} menu for {restaurant} is ready: {menuUrl}\n\nTo make changes, sign in here with your email ({email}): {inviteUrl}",
+    "detail": {
+      "menuLink": "Menu link",
+      "plan": "Plan",
+      "status": "Status",
+      "trialEnds": "Trial ends",
+      "paidUntil": "Paid until",
+      "members": "People",
+      "noMembers": "Nobody has signed in yet.",
+      "pendingInvites": "Waiting to sign in",
+      "newInvite": "New owner sign-in link",
+      "newInviteHint": "Makes a new link and cancels the old one.",
+      "openDashboard": "Open their dashboard",
+      "invitePhone": "Owner's phone number",
+      "inviteCreate": "Make link"
+    }
+  },
+  "home": {
+    "tagline": "Your menu, on every phone.",
+    "intro": "A QR menu for restaurants, cafés, lounges and bars. Diners scan, see your menu and order on WhatsApp.",
+    "signIn": "Restaurant sign in"
+  }
+}

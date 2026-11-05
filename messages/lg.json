@@ -1,0 +1,189 @@
+{
+  "common": {
+    "continue": "",
+    "back": "",
+    "cancel": "",
+    "save": "",
+    "saving": "",
+    "saved": "",
+    "copy": "",
+    "copied": "",
+    "close": "",
+    "loading": "",
+    "signOut": "",
+    "tryAgain": "",
+    "optional": "",
+    "required": "",
+    "yes": "",
+    "no": "",
+    "search": "",
+    "errorGeneric": "",
+    "errorOffline": "",
+    "notFoundTitle": "",
+    "notFoundBody": "",
+    "goHome": "",
+    "languageEnglish": "",
+    "languageLuganda": ""
+  },
+  "auth": {
+    "title": "",
+    "subtitle": "",
+    "phoneLabel": "",
+    "phonePlaceholder": "",
+    "phoneHint": "",
+    "sendCode": "",
+    "sending": "",
+    "useEmail": "",
+    "usePhone": "",
+    "emailLabel": "",
+    "emailPlaceholder": "",
+    "emailHint": "",
+    "codeLabel": "",
+    "codeSentPhone": "",
+    "codeSentEmail": "",
+    "verify": "",
+    "verifying": "",
+    "resend": "",
+    "resendIn": "",
+    "changeNumber": "",
+    "changeEmail": "",
+    "devHint": "",
+    "errors": {
+      "invalidPhone": "",
+      "phoneCountry": "",
+      "invalidEmail": "",
+      "invalidCode": "",
+      "tooMany": "",
+      "smsFailed": "",
+      "emailFailed": ""
+    }
+  },
+  "sms": {
+    "signInCode": ""
+  },
+  "invite": {
+    "title": "",
+    "bodyOwner": "",
+    "bodyStaff": "",
+    "phoneHint": "",
+    "emailHint": "",
+    "cta": "",
+    "expired": "",
+    "revoked": "",
+    "accepted": "",
+    "notFound": ""
+  },
+  "dashboard": {
+    "title": "",
+    "pick": "",
+    "noneTitle": "",
+    "noneBody": "",
+    "startOwn": "",
+    "openMenu": "",
+    "roleOwner": "",
+    "roleStaff": "",
+    "comingSoon": "",
+    "menuLink": "",
+    "planLine": "",
+    "status": {
+      "trial": "",
+      "active": "",
+      "overdue": "",
+      "free": ""
+    }
+  },
+  "admin": {
+    "title": "",
+    "nav": {
+      "restaurants": "",
+      "newRestaurant": ""
+    },
+    "restaurants": {
+      "title": "",
+      "count": "",
+      "searchPlaceholder": "",
+      "empty": "",
+      "noMatches": "",
+      "columns": {
+        "name": "",
+        "plan": "",
+        "status": "",
+        "area": "",
+        "agent": "",
+        "lastUpdate": ""
+      },
+      "never": "",
+      "noAgent": ""
+    },
+    "status": {
+      "trial": "",
+      "active": "",
+      "overdue": "",
+      "free": ""
+    },
+    "create": {
+      "title": "",
+      "intro": "",
+      "name": "",
+      "namePlaceholder": "",
+      "area": "",
+      "areaPlaceholder": "",
+      "whatsapp": "",
+      "whatsappHint": "",
+      "ownerSection": "",
+      "ownerName": "",
+      "ownerPhone": "",
+      "ownerPhoneHint": "",
+      "ownerEmail": "",
+      "ownerEmailHint": "",
+      "trialDays": "",
+      "trialDaysHint": "",
+      "agentCode": "",
+      "submit": "",
+      "submitting": "",
+      "errors": {
+        "name": "",
+        "area": "",
+        "whatsapp": "",
+        "ownerPhone": "",
+        "ownerEmail": "",
+        "ownerContact": "",
+        "trialDays": "",
+        "agentCode": "",
+        "failed": ""
+      }
+    },
+    "created": {
+      "title": "",
+      "body": "",
+      "menuLink": "",
+      "inviteLink": "",
+      "sendWhatsApp": "",
+      "copyLink": "",
+      "openRestaurant": "",
+      "createAnother": ""
+    },
+    "inviteMessage": "",
+    "inviteMessageEmail": "",
+    "detail": {
+      "menuLink": "",
+      "plan": "",
+      "status": "",
+      "trialEnds": "",
+      "paidUntil": "",
+      "members": "",
+      "noMembers": "",
+      "pendingInvites": "",
+      "newInvite": "",
+      "newInviteHint": "",
+      "openDashboard": "",
+      "invitePhone": "",
+      "inviteCreate": ""
+    }
+  },
+  "home": {
+    "tagline": "",
+    "intro": "",
+    "signIn": ""
+  }
+}
