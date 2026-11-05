@@ -1,15 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
 import { BRAND } from "@/config/brand";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
-
-const nunito = localFont({
-  src: "../fonts/nunito-latin-wght-normal.woff2",
-  weight: "200 1000",
-  display: "swap",
-  variable: "--font-nunito",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),
@@ -26,8 +18,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${nunito.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className="h-full antialiased">
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

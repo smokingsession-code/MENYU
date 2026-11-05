@@ -1,4 +1,5 @@
 import { BRAND } from "@/config/brand";
+import { DEMO_SLUG } from "@/config/demo";
 import { ButtonLink } from "@/components/ui/button";
 import { getTranslator } from "@/lib/i18n";
 
@@ -11,9 +12,14 @@ export default function Home() {
       <p className="text-3xl font-extrabold text-brand">{BRAND.name}</p>
       <h1 className="text-4xl font-extrabold leading-tight">{t("home.tagline")}</h1>
       <p className="text-lg text-muted">{t("home.intro")}</p>
-      <ButtonLink href="/login" size="lg" className="self-start">
-        {t("home.signIn")}
-      </ButtonLink>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <ButtonLink href={`/r/${DEMO_SLUG}`} size="lg">
+          {t("home.demo")}
+        </ButtonLink>
+        <ButtonLink href="/login" size="lg" variant="outline">
+          {t("home.signIn")}
+        </ButtonLink>
+      </div>
     </main>
   );
 }

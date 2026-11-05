@@ -14,10 +14,11 @@
     "db:start": "supabase start -x studio,realtime,edge-runtime,logflare,vector,supavisor,imgproxy,postgres-meta",
     "db:reset": "supabase db reset && npm run seed",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "seed": "tsx --conditions=react-server --env-file=.env.local scripts/seed.ts",
     "plans:sql": "tsx scripts/plans-sql.ts",
-    "admin:add": "tsx --env-file=.env.local scripts/add-admin.ts",
-    "i18n:sync": "tsx scripts/sync-lg.ts"
+    "admin:add": "tsx --conditions=react-server --env-file=.env.local scripts/add-admin.ts",
+    "i18n:sync": "tsx scripts/sync-lg.ts",
+    "seed:demo": "tsx --conditions=react-server --env-file=.env.local scripts/seed-demo.ts"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",
@@ -42,6 +43,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "jsqr": "^1.4.0",
     "supabase": "^3.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",

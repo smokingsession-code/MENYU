@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
-import { ButtonAnchor } from "@/components/ui/button";
+import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { PLANS, type PlanCode } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { formatDate } from "@/lib/dates";
@@ -53,6 +53,12 @@ export default async function RestaurantDashboard({ params }: PageProps<"/dashbo
             {t(`dashboard.status.${sub.status}` as MessageKey, { date: formatDate(statusDate) })}
           </p>
         </Card>
+      ) : null}
+
+      {role !== "staff" ? (
+        <ButtonLink href={`/dashboard/${r.id}/qr`} variant="outline" className="w-full">
+          {t("qr.open")}
+        </ButtonLink>
       ) : null}
 
       <Card>

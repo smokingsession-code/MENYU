@@ -20,7 +20,9 @@
   --color-danger-soft: #fbe9e7;
   --color-ok: #1e5b3a;
 
-  --font-sans: var(--font-nunito), ui-rounded, "Segoe UI", Roboto, system-ui, sans-serif;
+  /* var() needs its own fallback: an undefined variable would otherwise
+     invalidate the whole font list. */
+  --font-sans: var(--font-nunito, ui-rounded), ui-rounded, "Segoe UI", Roboto, system-ui, sans-serif;
 
   --radius-card: 1rem;
 }

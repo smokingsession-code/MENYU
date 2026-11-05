@@ -485,14 +485,14 @@ isOneToOne: false
                   ]
                 },"restaurants": {
                   Row: {
-                    "agent_id": string | null,"brand_color": string,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
+                    "agent_id": string | null,"brand_color": string,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_demo": boolean,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -700,6 +700,9 @@ isOneToOne: false
 "create_restaurant":
 { Args: { "p_agent_code"?: string,"p_area"?: string,"p_name": string,"p_owner_email"?: string,"p_owner_phone"?: string,"p_referral_code"?: string,"p_trial_days"?: number,"p_whatsapp"?: string }; Returns: Json
                            },
+"get_public_menu":
+{ Args: { "p_slug": string }; Returns: Json
+                           },
 "invitation_preview":
 { Args: { "p_token": string }; Returns: Json
                            },
@@ -708,6 +711,9 @@ isOneToOne: false
                            },
 "rate_limit_hit":
 { Args: { "p_key": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
+                           },
+"record_event":
+{ Args: { "p_item"?: string,"p_rate_key"?: string,"p_session"?: string,"p_slug": string,"p_table"?: string,"p_type": string }; Returns: Json
                            }
           }
           Enums: {

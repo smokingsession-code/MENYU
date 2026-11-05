@@ -1,13 +1,13 @@
 /**
- * Local development seed: an admin account (and, from phase 2, the Kijani
- * Café demo menu). Refuses to run against a non-local database unless
- * SEED_ALLOW_REMOTE=1.
+ * Local development seed: an admin account and the Kijani Café demo menu.
+ * Refuses to run against a non-local database unless SEED_ALLOW_REMOTE=1.
  *
  * Sign in locally as the admin with phone 0700 000 001 (the code is printed
  * in the Next.js terminal) or email admin@menyu.test (code in Mailpit at
  * http://127.0.0.1:54324).
  */
 import { adminClient, ensureUser, isLocalUrl } from "./lib";
+import { seedDemo } from "./seed-demo";
 
 const ADMIN_PHONE = process.env.SEED_ADMIN_PHONE ?? "256700000001";
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@menyu.test";
@@ -22,6 +22,9 @@ async function main() {
   const { error } = await db.from("admins").upsert({ user_id: admin.id }, { onConflict: "user_id" });
   if (error) throw error;
   console.log(`Admin ready: +${ADMIN_PHONE} / ${ADMIN_EMAIL}`);
+
+  const demo = await seedDemo(db);
+  console.log(`Demo ready: /r/${demo.slug} (${demo.items} items)`);
 }
 
 main().catch((error) => {

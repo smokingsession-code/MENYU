@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BRAND } from "@/config/brand";
-import { signOutAction } from "@/app/login/actions";
+import { signOutAction } from "@/app/(site)/login/actions";
 import { Button } from "@/components/ui/button";
 import { getTranslator } from "@/lib/i18n";
 
