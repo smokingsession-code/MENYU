@@ -98,7 +98,10 @@
       "restaurants": "",
       "newRestaurant": "",
       "billing": "",
-      "settings": ""
+      "settings": "",
+      "overview": "",
+      "requests": "",
+      "agents": ""
     },
     "restaurants": {
       "title": "",
@@ -260,7 +263,10 @@
       "supportWhatsapp": "",
       "supportWhatsappHint": "",
       "save": "",
-      "saved": ""
+      "saved": "",
+      "growthTitle": "",
+      "agentCommission": "",
+      "referralMonths": ""
     },
     "errors": {
       "billingInvalid": "",
@@ -272,7 +278,91 @@
       "phone": "",
       "code": "",
       "date": "",
-      "amount": ""
+      "amount": "",
+      "commission": "",
+      "referralMonths": ""
+    },
+    "overview": {
+      "title": "",
+      "restaurants": "",
+      "onTrial": "",
+      "paying": "",
+      "overdue": "",
+      "onFree": "",
+      "revenueMonth": "",
+      "revenueLastMonth": "",
+      "mrr": "",
+      "mrrHint": "",
+      "owed": "",
+      "viewsWeek": "",
+      "newThisMonth": "",
+      "openRequests": "",
+      "seeRequests": "",
+      "seeBilling": ""
+    },
+    "requests": {
+      "title": "",
+      "intro": "",
+      "open": "",
+      "done": "",
+      "cancelled": "",
+      "none": "",
+      "kind": {
+        "setup": "",
+        "change": ""
+      },
+      "status": {
+        "new": "",
+        "in_progress": "",
+        "done": "",
+        "cancelled": ""
+      },
+      "statusLabel": "",
+      "photo": "",
+      "pdf": "",
+      "chat": "",
+      "noNotes": "",
+      "import": "",
+      "importing": "",
+      "noRestaurant": "",
+      "updated": ""
+    },
+    "agents": {
+      "title": "",
+      "intro": "",
+      "add": "",
+      "name": "",
+      "phone": "",
+      "code": "",
+      "codeHint": "",
+      "commission": "",
+      "commissionHint": "",
+      "create": "",
+      "created": "",
+      "none": "",
+      "signed": "",
+      "payingCount": "",
+      "earned": "",
+      "paid": "",
+      "owedAmount": "",
+      "recordPayout": "",
+      "amount": "",
+      "method": "",
+      "transactionId": "",
+      "paidOn": "",
+      "savePayout": "",
+      "payoutSaved": "",
+      "deactivate": "",
+      "activate": "",
+      "inactive": "",
+      "restaurantsTitle": "",
+      "errors": {
+        "name": "",
+        "phone": "",
+        "code": "",
+        "amount": "",
+        "failed": ""
+      }
     }
   },
   "home": {
@@ -741,7 +831,12 @@
     "insightsHint": "",
     "proUpsellTitle": "",
     "proUpsellBody": "",
-    "proUpsellCta": ""
+    "proUpsellCta": "",
+    "referTitle": "",
+    "referBody": "",
+    "referShare": "",
+    "referMessage": "",
+    "referStats": ""
   },
   "import": {
     "title": "",

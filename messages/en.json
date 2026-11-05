@@ -98,7 +98,10 @@
       "restaurants": "Restaurants",
       "newRestaurant": "New restaurant",
       "billing": "Billing",
-      "settings": "Settings"
+      "settings": "Settings",
+      "overview": "Overview",
+      "requests": "Requests",
+      "agents": "Agents"
     },
     "restaurants": {
       "title": "Restaurants",
@@ -260,7 +263,10 @@
       "supportWhatsapp": "Your WhatsApp number",
       "supportWhatsappHint": "Owners send transaction IDs and questions here.",
       "save": "Save settings",
-      "saved": "Settings saved."
+      "saved": "Settings saved.",
+      "growthTitle": "Agents and referrals",
+      "agentCommission": "Agent commission per paying restaurant (UGX)",
+      "referralMonths": "Free months for each referred restaurant that pays"
     },
     "errors": {
       "billingInvalid": "Check the highlighted fields.",
@@ -272,7 +278,91 @@
       "phone": "Enter a valid phone number, like 0772 123 456.",
       "code": "Merchant codes are digits only.",
       "date": "Enter a date.",
-      "amount": "Enter an amount in UGX."
+      "amount": "Enter an amount in UGX.",
+      "commission": "Enter an amount in UGX.",
+      "referralMonths": "Enter a number of months from 0 to 12."
+    },
+    "overview": {
+      "title": "Overview",
+      "restaurants": "Restaurants",
+      "onTrial": "On trial",
+      "paying": "Paying",
+      "overdue": "Overdue",
+      "onFree": "On Free",
+      "revenueMonth": "Collected this month",
+      "revenueLastMonth": "Last month: {amount}",
+      "mrr": "Monthly recurring",
+      "mrrHint": "What paying restaurants bring in each month (yearly plans divided by 12).",
+      "owed": "Money overdue",
+      "viewsWeek": "Menu views, last 7 days",
+      "newThisMonth": "New restaurants this month",
+      "openRequests": "Open setup requests",
+      "seeRequests": "See requests",
+      "seeBilling": "See who is overdue"
+    },
+    "requests": {
+      "title": "Setup and change requests",
+      "intro": "Photos and notes owners sent. Import the photos to build the menu, then mark the request done.",
+      "open": "Open",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "none": "No requests here.",
+      "kind": {
+        "setup": "Set up my menu",
+        "change": "Change my menu"
+      },
+      "status": {
+        "new": "New",
+        "in_progress": "In progress",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      },
+      "statusLabel": "Status",
+      "photo": "Photo {n}",
+      "pdf": "PDF {n}",
+      "chat": "Chat on WhatsApp",
+      "noNotes": "No notes.",
+      "import": "Import these photos",
+      "importing": "Starting…",
+      "noRestaurant": "No restaurant yet",
+      "updated": "Request updated."
+    },
+    "agents": {
+      "title": "Agents",
+      "intro": "Agents sign up restaurants with their code. They earn a flat fee for each restaurant that pays.",
+      "add": "Add an agent",
+      "name": "Name",
+      "phone": "Phone",
+      "code": "Code",
+      "codeHint": "Letters and numbers, 3 to 12. Leave empty to make one.",
+      "commission": "Commission per paying restaurant (UGX)",
+      "commissionHint": "Leave empty to use the default ({amount}).",
+      "create": "Add agent",
+      "created": "Agent added. Their code is {code}.",
+      "none": "No agents yet.",
+      "signed": "Restaurants signed: {count}",
+      "payingCount": "Paying: {count}",
+      "earned": "Earned",
+      "paid": "Paid out",
+      "owedAmount": "Owed",
+      "recordPayout": "Record a payout",
+      "amount": "Amount (UGX)",
+      "method": "Paid with",
+      "transactionId": "Transaction ID",
+      "paidOn": "Date paid",
+      "savePayout": "Record payout",
+      "payoutSaved": "Payout recorded.",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "inactive": "Inactive",
+      "restaurantsTitle": "Their restaurants",
+      "errors": {
+        "name": "Enter the agent's name.",
+        "phone": "Enter a valid phone number, like 0772 123 456.",
+        "code": "That code is taken or not valid. Use 3 to 12 letters and numbers.",
+        "amount": "Enter an amount in UGX.",
+        "failed": "Couldn't save. Please try again."
+      }
     }
   },
   "home": {
@@ -741,7 +831,12 @@
     "insightsHint": "Views, busy hours, top dishes",
     "proUpsellTitle": "Get more with Pro",
     "proUpsellBody": "Specials and happy hour, private feedback from diners, insights, and \"Call the waiter\" and \"Bring the bill\" buttons.",
-    "proUpsellCta": "See plans"
+    "proUpsellCta": "See plans",
+    "referTitle": "Invite another restaurant",
+    "referBody": "When a restaurant you invite starts paying, you get a month free.",
+    "referShare": "Share on WhatsApp",
+    "referMessage": "We use {brand} for our menu: diners scan a QR code and order on WhatsApp. Try it with my link: {url}",
+    "referStats": "Invited: {invited} · Free months earned: {months}"
   },
   "import": {
     "title": "Import your menu from photos",

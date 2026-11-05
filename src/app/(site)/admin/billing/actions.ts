@@ -72,6 +72,7 @@ export async function recordPaymentAction(
   if (!result.ok) return { ok: false, error: failure[result.code] ?? failure.failed, field: result.code === "duplicate_transaction" ? "transactionId" : undefined };
 
   expireMenu(restaurantId);
+  if (result.rewardedReferrerId) expireMenu(result.rewardedReferrerId);
   refresh();
   return { ok: true, paidUntil: result.paidUntil?.toISOString() ?? null };
 }
@@ -146,6 +147,8 @@ const settingsSchema = z.object({
   airtelCode: z.string().trim().max(20).regex(/^\d*$/),
   airtelName: z.string().trim().max(80),
   supportWhatsapp: z.string().trim().max(30),
+  agentCommissionUgx: z.number().int().min(0).max(10_000_000),
+  referralMonths: z.number().int().min(0).max(12),
 });
 
 export type SettingsFormInput = z.input<typeof settingsSchema>;
@@ -162,7 +165,11 @@ export async function saveSettingsAction(input: SettingsFormInput): Promise<{ ok
           ? t("admin.errors.graceDays")
           : field === "mtnCode" || field === "airtelCode"
             ? t("admin.errors.code")
-            : failure.invalid;
+            : field === "agentCommissionUgx"
+              ? t("admin.errors.commission")
+              : field === "referralMonths"
+                ? t("admin.errors.referralMonths")
+                : failure.invalid;
     return { ok: false, error, field };
   }
   const s = parsed.data;
@@ -175,6 +182,8 @@ export async function saveSettingsAction(input: SettingsFormInput): Promise<{ ok
       graceDays: s.graceDays,
       momo: { mtn_code: s.mtnCode, mtn_name: s.mtnName, airtel_code: s.airtelCode, airtel_name: s.airtelName },
       supportWhatsapp: phone,
+      agentCommissionUgx: s.agentCommissionUgx,
+      referralMonths: s.referralMonths,
     },
     admin.id,
   );

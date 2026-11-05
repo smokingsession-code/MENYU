@@ -22,13 +22,18 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
 
   const supabase = await createClient();
   const pro = planHas(ctx.plan, "feedback");
-  const [{ count: items }, { count: tables }, { count: unread }] = await Promise.all([
+  const [{ count: items }, { count: tables }, { count: unread }, { data: referrals }] = await Promise.all([
     supabase.from("items").select("id", { count: "exact", head: true }).eq("menu_id", ctx.branch.menuId).is("deleted_at", null),
     supabase.from("tables").select("id", { count: "exact", head: true }).eq("branch_id", ctx.branch.id).is("deleted_at", null),
     pro
       ? supabase.from("feedback").select("id", { count: "exact", head: true }).eq("restaurant_id", restaurantId).is("read_at", null).is("deleted_at", null)
       : Promise.resolve({ count: 0 }),
+    ctx.role === "owner"
+      ? supabase.from("referrals").select("status, reward_months").eq("referrer_id", restaurantId)
+      : Promise.resolve({ data: [] as { status: string; reward_months: number }[] }),
   ]);
+  const referUrl = `${publicEnv.siteUrl}/join/${ctx.referralCode}`;
+  const freeMonths = (referrals ?? []).filter((r) => r.status === "rewarded").reduce((n, r) => n + r.reward_months, 0);
 
   const steps = [
     { done: Boolean(ctx.logo), label: t("home2.stepLogo"), href: `${base}/profile` },
@@ -172,6 +177,28 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
           <ButtonLink href={`${base}/billing`} variant="outline" size="sm">
             {t("home2.proUpsellCta")}
           </ButtonLink>
+        </Card>
+      ) : null}
+
+      {ctx.role === "owner" && !ctx.isDemo ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-extrabold">{t("home2.referTitle")}</h2>
+          <p>{t("home2.referBody")}</p>
+          <p className="break-all font-mono text-sm">{referUrl}</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <ButtonAnchor
+              href={`https://wa.me/?text=${encodeURIComponent(t("home2.referMessage", { url: referUrl }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="brand"
+            >
+              {t("home2.referShare")}
+            </ButtonAnchor>
+            <CopyButton text={referUrl} label={t("common.copy")} copiedLabel={t("common.copied")} />
+          </div>
+          {referrals && referrals.length ? (
+            <p className="text-sm text-muted">{t("home2.referStats", { invited: referrals.length, months: freeMonths })}</p>
+          ) : null}
         </Card>
       ) : null}
 

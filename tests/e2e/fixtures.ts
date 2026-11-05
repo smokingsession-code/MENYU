@@ -16,14 +16,14 @@ export async function throttle(page: Page, profile: keyof typeof NETWORK = "fast
 }
 
 /**
- * Every page in these tests is throttled to 3G. Each test is a different
- * person, so the per-address sign-in limit (20 codes per 15 minutes) starts
- * fresh for each test; the per-phone limits still apply.
+ * Every page in these tests is throttled to 3G. Each test starts with fresh
+ * sign-in limits (codes per address and per phone): the suite signs the same
+ * admin in many times, far more often than a real person would.
  */
 export const test = base.extend<{ freshSignInLimits: void }>({
   freshSignInLimits: [
     async ({}, provide) => {
-      await service().from("rate_limits").delete().like("key", "otp-send:ip:%");
+      await service().from("rate_limits").delete().like("key", "otp-%");
       await provide();
     },
     { auto: true },

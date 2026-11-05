@@ -8,8 +8,8 @@ import { getTranslator } from "@/lib/i18n";
 import { publishProblems, type ImportDraft } from "@/lib/import/draft";
 import { draftZ } from "@/lib/import/draft-schema";
 import { canRetry, expireStaleImports, importAvailable, processImport, type StoredFile } from "@/lib/import/process";
+import { createImport, importWithinLimits } from "@/lib/import/start";
 import { expireMenu } from "@/lib/menu/expire";
-import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -32,13 +32,6 @@ async function editor(restaurantId: string) {
   const ctx = await getDashboardContext(restaurantId);
   if (!ctx.canEditMenu) return { error: t("import.errors.notAllowed") } as const;
   return { user, role, ctx, error: null } as const;
-}
-
-/** Imports cost money (Claude calls), so they are limited per person and per restaurant. */
-async function withinLimits(userId: string, restaurantId: string, admin: boolean): Promise<boolean> {
-  const perUser = await rateLimit(`import:u:${userId}`, admin ? 40 : 10, 3600);
-  if (!perUser) return false;
-  return rateLimit(`import:r:${restaurantId}`, 20, 86_400);
 }
 
 export interface ImportFileInput {
@@ -71,44 +64,17 @@ export async function startImportAction(
   }
   const branch = ctx.branches.find((b) => b.id === input.branchId) ?? ctx.branch;
 
-  const admin = createAdminClient();
-  await expireStaleImports(restaurantId);
-  const { count: running } = await admin
-    .from("menu_imports")
-    .select("id", { count: "exact", head: true })
-    .eq("restaurant_id", restaurantId)
-    .eq("status", "processing")
-    .is("deleted_at", null);
-  if ((running ?? 0) > 0) return { ok: false, error: t("import.errors.running") };
-  if (!(await withinLimits(user.id, restaurantId, role === "admin"))) return { ok: false, error: t("import.errors.tooMany") };
-
-  const stored: StoredFile[] = files.map((f) => ({ path: f.path, mime: f.type, size: f.size, name: f.name.slice(0, 120) }));
-  const { data, error } = await admin
-    .from("menu_imports")
-    .insert({
-      restaurant_id: restaurantId,
-      menu_id: branch.menuId,
-      created_by: user.id,
-      files: stored as unknown as Json[],
-      status: "processing",
-      attempts: 1,
-    })
-    .select("id")
-    .single();
-  if (error || !data) {
-    console.error("[import] could not create the import", { message: error?.message });
-    return { ok: false, error: t("import.errors.failed") };
-  }
-  await admin.from("audit_log").insert({
-    actor_id: user.id,
-    restaurant_id: restaurantId,
-    action: "menu_import.started",
-    details: { import_id: data.id, files: files.length },
+  const started = await createImport({
+    restaurantId,
+    menuId: branch.menuId,
+    userId: user.id,
+    isAdmin: role === "admin",
+    files: files.map((f) => ({ path: f.path, mime: f.type, size: f.size, name: f.name.slice(0, 120) })),
   });
-
-  const importId = data.id;
-  after(() => processImport(importId));
-  return { ok: true, importId };
+  if (!started.ok) {
+    return { ok: false, error: started.code === "running" ? t("import.errors.running") : started.code === "too_many" ? t("import.errors.tooMany") : t("import.errors.failed") };
+  }
+  return { ok: true, importId: started.importId };
 }
 
 /** Polled by the progress screen while Claude reads the menu. */
@@ -249,7 +215,7 @@ export async function retryImportAction(restaurantId: string, importId: string):
   if (!row || row.status !== "failed" || !canRetry(row.error_code, row.attempts)) {
     return { ok: false, error: t("import.errors.cannotRetry") };
   }
-  if (!(await withinLimits(access.user.id, restaurantId, access.role === "admin"))) {
+  if (!(await importWithinLimits(access.user.id, restaurantId, access.role === "admin"))) {
     return { ok: false, error: t("import.errors.tooMany") };
   }
 

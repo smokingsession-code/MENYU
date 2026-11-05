@@ -20,16 +20,25 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
       <AppHeader href="/admin" label={t("admin.title")} />
       <nav aria-label={t("admin.title")} className="border-b border-line bg-card">
         <div className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-2">
-          <Link href="/admin/restaurants" className="flex min-h-11 items-center px-3 font-bold text-brand">
+          <Link href="/admin" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
+            {t("admin.nav.overview")}
+          </Link>
+          <Link href="/admin/restaurants" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.restaurants")}
           </Link>
-          <Link href="/admin/restaurants/new" className="flex min-h-11 items-center px-3 font-bold text-brand">
+          <Link href="/admin/restaurants/new" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.newRestaurant")}
           </Link>
-          <Link href="/admin/billing" className="flex min-h-11 items-center px-3 font-bold text-brand">
+          <Link href="/admin/requests" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
+            {t("admin.nav.requests")}
+          </Link>
+          <Link href="/admin/billing" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.billing")}
           </Link>
-          <Link href="/admin/settings" className="flex min-h-11 items-center px-3 font-bold text-brand">
+          <Link href="/admin/agents" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
+            {t("admin.nav.agents")}
+          </Link>
+          <Link href="/admin/settings" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.settings")}
           </Link>
         </div>

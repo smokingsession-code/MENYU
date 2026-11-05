@@ -57,6 +57,8 @@ export interface DashboardContext {
   canManage: boolean;
   canToggleSoldOut: boolean;
   isDemo: boolean;
+  /** For the owner's "invite another restaurant" link. */
+  referralCode: string;
 }
 
 /**
@@ -72,7 +74,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, description, brand_color, logo, cover, cuisines, price_range, is_demo, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
+      "id, name, description, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
     )
     .eq("id", restaurantId)
     .is("deleted_at", null)
@@ -140,6 +142,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
     canManage: admin || (role === "owner" && planHas(plan, "dashboard")),
     canToggleSoldOut: admin || (role === "owner" && planHas(plan, "menu_editing")) || (role === "staff" && planHas(plan, "staff")),
     isDemo: r.is_demo,
+    referralCode: r.referral_code,
   };
 });
 

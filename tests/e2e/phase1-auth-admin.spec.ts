@@ -35,14 +35,18 @@ test.describe("phase 1: sign in, admin creates a restaurant, owner accepts", () 
     const code = await emailCode(ADMIN.email, since);
     await page.getByLabel("6-digit code").fill(code);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await expect(page).toHaveURL(/\/admin\/restaurants/);
+    // The admin home is the overview.
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+    await expectNoHorizontalScroll(page);
   });
 
   test("admin creates a restaurant and the owner signs in from the invite", async ({ page, browser }) => {
     // Admin, by phone.
     await page.goto("/login");
     await signInWithPhone(page, ADMIN.digits, ADMIN.local);
-    await expect(page).toHaveURL(/\/admin\/restaurants/);
+    await expect(page).toHaveURL(/\/admin$/);
+    await page.goto("/admin/restaurants");
     await expect(page.getByRole("heading", { name: "Restaurants" })).toBeVisible();
     await expectNoHorizontalScroll(page);
     await page.screenshot({ path: "test-results/screens/admin-restaurants-360.png", fullPage: true });

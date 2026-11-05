@@ -23,8 +23,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 4 | Menu from a photo, review screen | Done |
 | 5 | Plans, limits, trials, manual billing, reminders, grace period | Done |
 | 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Done |
-| 7 | Admin: setup queue, agents, referrals, overview | Next |
-| 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | |
+| 7 | Admin: setup queue, agents, referrals, overview | Done |
+| 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Next |
 | 9 | Flutterwave or Pesapal mobile money | |
 
 ## Run it locally
@@ -184,6 +184,26 @@ their payment history. Staff never see billing.
   dishes and tables over 7 or 30 Kampala days. The charts are plain HTML
   rendered on the server, each with a table view. Crawlers and headless
   browsers are never counted.
+
+**Admin tools.** The admin home (`/admin`) is the overview: restaurants by
+status, paying restaurants, money collected this month and last, monthly
+recurring revenue, money overdue, menu views in the last 7 days and open
+setup requests (numbers from `src/lib/admin/overview.ts`, unit tested). The
+request queue (`/admin/requests`) shows the photos and notes owners sent,
+with a WhatsApp link to the owner. "Import these photos" runs the photo
+import on copies of the photos, and the request has a status to track it.
+
+**Agents and referrals.** Agents (`/admin/agents`) get a code that owners
+enter at signup. Each restaurant that pays earns its agent a flat fee: the
+agent's own amount, or the default in Admin > Settings (UGX 20,000). The
+page shows what each agent has earned, been paid and is owed, and records
+payouts. Every restaurant also has a referral link (`/join/CODE`, on the
+owner's home screen). The code is remembered through sign-in, and when the
+invited restaurant first pays, the referrer gets a free month: a longer
+trial, a later due date, or a month of Standard if they are on Free. Both
+rewards come from the first plan payment, whether recorded by hand or by a
+provider webhook (`payment_rewards`). Removing that payment takes the
+agent's fee back.
 
 **Money** is whole Ugandan shillings in integer `*_ugx` columns, shown as
 "UGX 15,000". Times are shown in Africa/Kampala.

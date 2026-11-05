@@ -23,7 +23,13 @@ export function SettingsForm({ initial, s }: { initial: Values; s: Record<string
         e.preventDefault();
         setResult(null);
         start(async () => {
-          const r = await saveSettingsAction({ ...values, trialDays: Number(values.trialDays), graceDays: Number(values.graceDays) } as SettingsFormInput);
+          const r = await saveSettingsAction({
+            ...values,
+            trialDays: Number(values.trialDays),
+            graceDays: Number(values.graceDays),
+            agentCommissionUgx: Number(values.agentCommissionUgx.replace(/[,\s]/g, "")),
+            referralMonths: Number(values.referralMonths),
+          } as SettingsFormInput);
           setResult(r.ok ? { tone: "success", text: s["settings.saved"] } : { tone: "error", text: r.error, field: r.field });
         });
       }}
@@ -52,6 +58,17 @@ export function SettingsForm({ initial, s }: { initial: Values; s: Record<string
           </Field>
           <Field id="set-airtel-name" label={s["settings.airtelName"]}>
             <Input id="set-airtel-name" value={values.airtelName} onChange={set("airtelName")} />
+          </Field>
+        </div>
+      </fieldset>
+      <fieldset className="space-y-4">
+        <legend className="text-lg font-extrabold">{s["settings.growthTitle"]}</legend>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field id="set-commission" label={s["settings.agentCommission"]} error={error("agentCommissionUgx")}>
+            <Input id="set-commission" inputMode="numeric" value={values.agentCommissionUgx} onChange={set("agentCommissionUgx")} />
+          </Field>
+          <Field id="set-referral" label={s["settings.referralMonths"]} error={error("referralMonths")}>
+            <Input id="set-referral" inputMode="numeric" value={values.referralMonths} onChange={set("referralMonths")} />
           </Field>
         </div>
       </fieldset>

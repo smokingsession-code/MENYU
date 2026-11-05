@@ -715,6 +715,9 @@ isOneToOne: false
 "invitation_preview":
 { Args: { "p_token": string }; Returns: Json
                            },
+"payment_rewards":
+{ Args: { "p_payment_id": string,"p_restaurant_id": string }; Returns: Json
+                           },
 "prune_rate_limits":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
@@ -750,6 +753,12 @@ isOneToOne: false
                            },
 "submit_feedback":
 { Args: { "p_comment"?: string,"p_rate_key"?: string,"p_rating": number,"p_slug": string,"p_table"?: string }; Returns: string
+                           },
+"unclaim_referral":
+{ Args: { "p_referral_id": string }; Returns: undefined
+                           },
+"void_payment_rewards":
+{ Args: { "p_payment_id": string }; Returns: undefined
                            }
           }
           Enums: {

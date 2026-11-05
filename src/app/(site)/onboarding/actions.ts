@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getTranslator } from "@/lib/i18n";
@@ -34,7 +35,9 @@ export async function createMyRestaurantAction(_prev: OnboardingState, formData:
 
   if (!(await rateLimit(`onboard:${await clientKey()}`, 10, 3600))) return { values, formError: t("auth.errors.tooMany") };
 
-  const referral = String(formData.get("ref") ?? "").trim().toUpperCase();
+  // From ?ref= on this page, or remembered by a /join/CODE link through sign-in.
+  const jar = await cookies();
+  const referral = (String(formData.get("ref") ?? "").trim() || jar.get("menyu_ref")?.value || "").toUpperCase();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_restaurant", {
     p_name: values.name,
@@ -49,5 +52,6 @@ export async function createMyRestaurantAction(_prev: OnboardingState, formData:
     console.error("[onboarding] create_restaurant failed", { code: error.code, message: error.message });
     return { values, formError: t("onboarding.errors.failed") };
   }
+  jar.delete("menyu_ref");
   redirect(`/dashboard/${(data as { restaurant_id: string }).restaurant_id}/start`);
 }

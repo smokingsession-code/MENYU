@@ -36,7 +36,15 @@ export interface RecordPaymentInput {
 }
 
 export type RecordPaymentResult =
-  | { ok: true; paymentId: string; duplicate: boolean; paidUntil: Date | null; status: BillingStatus | null }
+  | {
+      ok: true;
+      paymentId: string;
+      duplicate: boolean;
+      paidUntil: Date | null;
+      status: BillingStatus | null;
+      /** A restaurant that got free months because this one paid (its menu changes too). */
+      rewardedReferrerId: string | null;
+    }
   | { ok: false; code: "not_found" | "duplicate_transaction" | "invalid" | "stale" | "failed" };
 
 type StoredSubscription = SubscriptionState & { updated_at: string };
@@ -100,7 +108,13 @@ export async function recordPayment(input: RecordPaymentInput): Promise<RecordPa
       return { ok: false, code: "failed" };
     }
     const result = data as { payment_id: string; duplicate: boolean };
-    return { ok: true, paymentId: result.payment_id, duplicate: result.duplicate, paidUntil: period?.end ?? null, status: newStatus };
+    // A first plan payment earns the agent's commission and the referrer's free month.
+    let rewardedReferrerId: string | null = null;
+    if (isPlan && (input.status ?? "succeeded") === "succeeded" && !result.duplicate) {
+      const { applyPaymentRewards } = await import("./rewards");
+      rewardedReferrerId = (await applyPaymentRewards(input.restaurantId, result.payment_id)).referrerId;
+    }
+    return { ok: true, paymentId: result.payment_id, duplicate: result.duplicate, paidUntil: period?.end ?? null, status: newStatus, rewardedReferrerId };
   }
   return { ok: false, code: "stale" };
 }
@@ -148,7 +162,10 @@ export async function removePayment(paymentId: string, actorId: string): Promise
     }
 
     const { error } = await db.rpc("remove_payment", { p: { payment_id: paymentId, actor_id: actorId, ...(revert ? { revert } : {}) } });
-    if (!error) return { ok: true, restaurantId: payment.restaurant_id };
+    if (!error) {
+      await db.rpc("void_payment_rewards", { p_payment_id: paymentId });
+      return { ok: true, restaurantId: payment.restaurant_id };
+    }
     if (error.code === "40001") continue;
     if (error.code === "P0002") return { ok: false, code: "not_found" };
     console.error("[billing] remove_payment failed", { code: error.code, message: error.message });
@@ -189,7 +206,8 @@ export function subscriptionValues(change: SubscriptionChange, current: { trial_
 export async function changeSubscription(
   restaurantId: string,
   change: SubscriptionChange,
-  actorId: string,
+  /** Null for automatic changes (referral rewards). */
+  actorId: string | null,
   expectedUpdatedAt: string,
 ): Promise<{ ok: true; status: BillingStatus } | { ok: false; code: "not_found" | "stale" | "invalid" | "failed" }> {
   const sub = await readSubscription(restaurantId);

@@ -15,9 +15,13 @@ export interface BillingSettings {
   momo: BusinessMomo;
   /** International digits, or "" when not set. */
   supportWhatsapp: string;
+  /** Flat fee an agent earns for each restaurant that pays. */
+  agentCommissionUgx: number;
+  /** Free months a restaurant earns for each referred restaurant that pays. */
+  referralMonths: number;
 }
 
-const KEYS = ["trial_days", "grace_days", "business_momo", "support_whatsapp"] as const;
+const KEYS = ["trial_days", "grace_days", "business_momo", "support_whatsapp", "agent_commission_ugx", "referral_reward_months"] as const;
 
 function int(value: Json | undefined, fallback: number): number {
   const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
@@ -45,6 +49,8 @@ export async function getBillingSettings(): Promise<BillingSettings> {
       airtel_name: text(m.airtel_name),
     },
     supportWhatsapp: text(values.get("support_whatsapp")),
+    agentCommissionUgx: int(values.get("agent_commission_ugx"), 20_000),
+    referralMonths: int(values.get("referral_reward_months"), 1),
   };
 }
 
@@ -55,6 +61,8 @@ export async function saveBillingSettings(values: BillingSettings, actorId: stri
     { key: "grace_days", value: values.graceDays, updated_at: now, updated_by: actorId },
     { key: "business_momo", value: { ...values.momo }, updated_at: now, updated_by: actorId },
     { key: "support_whatsapp", value: values.supportWhatsapp, updated_at: now, updated_by: actorId },
+    { key: "agent_commission_ugx", value: values.agentCommissionUgx, updated_at: now, updated_by: actorId },
+    { key: "referral_reward_months", value: values.referralMonths, updated_at: now, updated_by: actorId },
   ];
   const db = createAdminClient();
   const { error } = await db.from("settings").upsert(rows, { onConflict: "key" });

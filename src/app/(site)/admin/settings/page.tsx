@@ -23,6 +23,8 @@ export default async function AdminSettingsPage() {
             airtelCode: settings.momo.airtel_code,
             airtelName: settings.momo.airtel_name,
             supportWhatsapp: settings.supportWhatsapp ? formatPhoneLocal(settings.supportWhatsapp) : "",
+            agentCommissionUgx: String(settings.agentCommissionUgx),
+            referralMonths: String(settings.referralMonths),
           }}
           s={sectionStrings("en", "admin")}
         />

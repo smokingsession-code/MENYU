@@ -45,5 +45,6 @@ export async function POST(request: Request, { params }: RouteContext<"/api/paym
     return new Response("Not recorded", { status: 500 });
   }
   expireMenu(pending.restaurant_id, "background");
+  if (result.rewardedReferrerId) expireMenu(result.rewardedReferrerId, "background");
   return Response.json({ received: true });
 }
