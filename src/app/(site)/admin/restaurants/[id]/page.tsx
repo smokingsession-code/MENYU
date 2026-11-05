@@ -49,9 +49,14 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
           <h1 className="text-2xl font-extrabold">{r.name}</h1>
           <p className="text-muted">{[main?.area, r.agents?.name].filter(Boolean).join(" · ")}</p>
         </div>
-        <ButtonLink href={`/dashboard/${r.id}`} variant="brand">
-          {t("admin.detail.openDashboard")}
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/dashboard/${r.id}`} variant="brand">
+            {t("admin.detail.openDashboard")}
+          </ButtonLink>
+          <ButtonLink href={`/dashboard/${r.id}/import`} variant="outline">
+            {t("admin.detail.importMenu")}
+          </ButtonLink>
+        </div>
       </div>
 
       <Card className="space-y-3">

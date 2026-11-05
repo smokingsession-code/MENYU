@@ -715,6 +715,9 @@ isOneToOne: false
 "prune_rate_limits":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"publish_menu_import":
+{ Args: { "p_draft": Json,"p_import_id": string,"p_mode"?: string }; Returns: Json
+                           },
 "rate_limit_hit":
 { Args: { "p_key": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
                            },

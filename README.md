@@ -20,8 +20,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 1 | Setup, data model, RLS, auth, admin creates a restaurant | Done |
 | 2 | Diner menu, cart, WhatsApp ordering, QR codes and print PDF, demo data | Done |
 | 3 | Owner dashboard: menu editor, profile, tables, sold-out | Done |
-| 4 | Menu from a photo, review screen | Next |
-| 5 | Plans, limits, trials, manual billing, reminders, grace period | |
+| 4 | Menu from a photo, review screen | Done |
+| 5 | Plans, limits, trials, manual billing, reminders, grace period | Next |
 | 6 | Specials, call the waiter, MoMo pay info, feedback, insights | |
 | 7 | Admin: setup queue, agents, referrals, overview | |
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | |
@@ -48,10 +48,15 @@ Sign in at http://localhost:3000/login as the seeded admin:
 ## Tests
 
 ```bash
-npm test                  # unit: price parsing, WhatsApp message, hours, plans, PDFs, SMS, i18n
-npm run test:integration  # row-level security against the local database
+npm test                  # unit: price parsing, WhatsApp message, hours, plans, PDFs, SMS, i18n, menu import
+npm run test:integration  # row-level security and database functions against the local database
 npm run build && npm run test:e2e   # browser flows at 360px on throttled 3G
 ```
+
+The browser tests need `MENU_IMPORT_FAKE=1` in `.env.local`: the photo import
+then uses a canned menu instead of calling Claude (see
+`src/lib/import/fake.ts`). It only works next to a local Supabase and never on
+Vercel.
 
 ## How it fits together
 
@@ -97,6 +102,33 @@ request that records the visit. Budget: under 200 KB before images (about
 stylesheet (`src/app/menu.css`) and use the phone's font; Menyu's pages use
 `src/app/site.css` with Nunito.
 
+**Menu from photos** (`/dashboard/[id]/import`, also linked from the admin
+restaurant page). Photos and PDFs go from the phone straight to private
+storage through signed upload links. A Server Action creates the import and
+reads it in the background (`after`), so the owner can leave the page:
+
+1. Photos are turned upright and scaled to the most detail the model uses
+   (2576 px, 3.75 megapixels) with sharp; PDFs go as they are. iPhone HEIC
+   photos the server cannot decode get a clear message.
+2. Claude (`claude-opus-5-5` by default, `MENU_IMPORT_MODEL` to change)
+   returns sections and dishes through structured outputs
+   (`src/lib/import/schema.ts`). It copies prices exactly as printed
+   ("15k", "15,000/="); our own tested price parser turns them into
+   shillings, so the model never does arithmetic on money. If a safety check
+   declines, the API retries on its fallback model.
+3. The owner checks a draft where everything the reader or the price parser
+   was unsure about is highlighted, edits it (autosaved), and publishes. One
+   database function (`publish_menu_import`) adds the sections after the
+   current menu or replaces it (the old dishes are soft-deleted, so they can
+   be restored). Nothing is visible to diners before that.
+
+Imports are rate limited (10 an hour per person, 20 a day per restaurant)
+and fail closed. Reading runs inside the page's 300 second limit
+(`maxDuration`); Claude gets 270 seconds of it, and a read that stops early
+is marked failed after six minutes so the owner can try again. Photos are
+deleted once an import is published or discarded. Without
+`ANTHROPIC_API_KEY` the import page offers "Send it to us" instead.
+
 **Money** is whole Ugandan shillings in integer `*_ugx` columns, shown as
 "UGX 15,000". Times are shown in Africa/Kampala.
 
@@ -122,5 +154,11 @@ stylesheet (`src/app/menu.css`) and use the phone's font; Menyu's pages use
    with the username and API key.
 5. **Vercel**: set every variable from `.env.example`. A commercial product
    needs a Vercel Pro team (Hobby is for non-commercial use).
-6. **First admin**: sign in once with your phone, then
+6. **Claude API**: create a key at console.anthropic.com and set
+   `ANTHROPIC_API_KEY` on Vercel (server only; it never reaches the browser).
+   Set a monthly spend limit in the Console. Expect roughly US$0.05 to 0.20
+   per menu page at Opus 5.5 prices ($4 in / $20 out per million tokens);
+   each import stores its token `usage`, so check real costs after the first
+   few.
+7. **First admin**: sign in once with your phone, then
    `npm run admin:add -- 07xx xxx xxx` with `.env.local` pointing at production.

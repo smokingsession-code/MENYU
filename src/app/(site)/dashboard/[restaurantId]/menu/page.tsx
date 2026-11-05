@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Alert } from "@/components/ui/card";
+import { ButtonLink } from "@/components/ui/button";
 import { MenuEditor, type EditorCategory } from "@/components/dashboard/menu-editor";
 import type { EditorItem } from "@/components/dashboard/item-editor";
 import { PLANS } from "@/config/plans";
@@ -11,8 +12,10 @@ import { createClient } from "@/lib/supabase/server";
 
 const t = getTranslator("en");
 
-export default async function MenuPage({ params }: PageProps<"/dashboard/[restaurantId]/menu">) {
+export default async function MenuPage({ params, searchParams }: PageProps<"/dashboard/[restaurantId]/menu">) {
   const { restaurantId } = await params;
+  const { imported } = await searchParams;
+  const importedCount = typeof imported === "string" && /^\d{1,5}$/.test(imported) ? Number(imported) : null;
   const ctx = await getDashboardContext(restaurantId);
   const supabase = await createClient();
 
@@ -67,7 +70,15 @@ export default async function MenuPage({ params }: PageProps<"/dashboard/[restau
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">{mode === "soldout" ? t("editor.staffTitle") : t("editor.title")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-extrabold">{mode === "soldout" ? t("editor.staffTitle") : t("editor.title")}</h1>
+        {mode === "edit" ? (
+          <ButtonLink href={`/dashboard/${restaurantId}/import`} variant="outline" size="sm">
+            {t("editor.fromPhotos")}
+          </ButtonLink>
+        ) : null}
+      </div>
+      {importedCount !== null && mode === "edit" ? <Alert tone="success">{t("editor.imported", { count: importedCount })}</Alert> : null}
       {mode === "soldout" ? <p className="text-muted">{t("editor.staffIntro")}</p> : null}
       {mode === "view" ? (
         <Alert tone="warning">
