@@ -25,7 +25,7 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Done |
 | 7 | Admin: setup queue, agents, referrals, overview | Done |
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Done |
-| 9 | Flutterwave or Pesapal mobile money | Next |
+| 9 | Online payments with Pesapal (MTN MoMo, Airtel Money, cards) | Done |
 
 ## Run it locally
 
@@ -53,10 +53,19 @@ npm run test:integration  # row-level security and database functions against th
 npm run build && npm run test:e2e   # browser flows at 360px on throttled 3G
 ```
 
-The browser tests need `MENU_IMPORT_FAKE=1` in `.env.local`: the photo import
-then uses a canned menu instead of calling Claude (see
-`src/lib/import/fake.ts`). It only works next to a local Supabase and never on
-Vercel.
+The browser tests need these lines in `.env.local`. The photo import then
+uses a canned menu instead of calling Claude (`src/lib/import/fake.ts`; it
+only works next to a local Supabase and never on Vercel). Online payments go
+to a stand-in Pesapal that the tests start (`tests/e2e/fake-pesapal.ts`):
+
+```bash
+MENU_IMPORT_FAKE=1
+PAYMENT_PROVIDER=pesapal
+PESAPAL_CONSUMER_KEY=test-key
+PESAPAL_CONSUMER_SECRET=test-secret
+PESAPAL_IPN_ID=test-ipn
+PESAPAL_BASE_URL=http://127.0.0.1:4010
+```
 
 ## How it fits together
 
@@ -179,6 +188,19 @@ today. Flutterwave or Pesapal (phase 9) implement the `PaymentProvider`
 interface in `src/lib/billing/providers/` and send confirmed payments to
 `/api/payments/[provider]`, which uses the same `recordPayment()`.
 
+**Paying online (Pesapal).** With `PAYMENT_PROVIDER=pesapal`, the owner's
+billing page has a "Pay now" button. It creates an order with Pesapal
+(recorded as a pending payment) and opens Pesapal's page, where the owner pays
+with MTN MoMo, Airtel Money or a card. Pesapal then calls
+`/api/payments/pesapal` (its IPN) and sends the owner back through
+`/api/payments/pesapal/return`. Neither carries the payment's status, so both
+ask Pesapal's GetTransactionStatus. The payment is credited (the same
+`recordPayment` as manual payments, so agents and referrals are rewarded too)
+only when Pesapal says it completed and the amount and currency match the
+bill. Repeats are recorded once. The daily job also asks about orders still
+pending (a missed notification), and gives up on them after a week. Manual
+MoMo payments keep working alongside.
+
 The daily job is `/api/cron/billing`, scheduled in `vercel.json` (06:00
 Kampala time) and protected by `CRON_SECRET`. The admin billing page lists
 who is overdue, due within 7 days or recently moved to Free, with a
@@ -264,5 +286,13 @@ agent's fee back.
 7. **Billing**: set `CRON_SECRET` on Vercel (the daily billing job uses it),
    then fill in your MoMo merchant codes and WhatsApp number in
    Admin > Settings before the first trials end.
-8. **First admin**: sign in once with your phone, then
+8. **Pesapal** (optional; manual MoMo works without it): open a merchant
+   account, try it first with Pesapal's sandbox test keys
+   (`PESAPAL_ENV=sandbox`), then set `PAYMENT_PROVIDER=pesapal`,
+   `PESAPAL_ENV=live`, `PESAPAL_CONSUMER_KEY` and `PESAPAL_CONSUMER_SECRET`
+   on Vercel. Once the site is live, run `npm run pesapal:ipn` with the same
+   values and `NEXT_PUBLIC_SITE_URL` to register
+   `https://<your-domain>/api/payments/pesapal`, and set the printed
+   `PESAPAL_IPN_ID` on Vercel.
+9. **First admin**: sign in once with your phone, then
    `npm run admin:add -- 07xx xxx xxx` with `.env.local` pointing at production.

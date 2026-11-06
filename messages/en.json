@@ -1150,6 +1150,21 @@
       "or": "or",
       "payAsk": "Reply to this message and we'll tell you how to pay.",
       "thanks": "Then reply here with the transaction ID. Thank you!"
+    },
+    "payNow": "Pay {amount} now",
+    "payNowHint": "With MTN MoMo, Airtel Money or a card, on Pesapal's secure page. Your plan updates as soon as the payment goes through.",
+    "paying": "Opening the payment page…",
+    "payDescription": "{brand} {plan} plan for {restaurant}",
+    "payStartFailed": "The payment page didn't open. Try again in a minute, or pay with the merchant code below.",
+    "orPayManually": "Or pay to our merchant code",
+    "outcome": {
+      "paid": "Payment received. Thank you! Your plan is up to date.",
+      "already_paid": "This payment is already recorded. Thank you!",
+      "pending": "We're waiting for the payment to be confirmed. This usually takes a minute; refresh this page to check.",
+      "failed": "The payment didn't go through. You can try again.",
+      "mismatch": "We couldn't match this payment to your bill. Send us the transaction ID and we'll sort it out.",
+      "unknown": "We couldn't find this payment. If money left your account, send us the transaction ID.",
+      "error": "We couldn't record the payment yet. If money left your account, it will show here within a day."
     }
   },
   "specials": {

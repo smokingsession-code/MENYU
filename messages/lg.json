@@ -1150,6 +1150,21 @@
       "or": "",
       "payAsk": "",
       "thanks": ""
+    },
+    "payNow": "",
+    "payNowHint": "",
+    "paying": "",
+    "payDescription": "",
+    "payStartFailed": "",
+    "orPayManually": "",
+    "outcome": {
+      "paid": "",
+      "already_paid": "",
+      "pending": "",
+      "failed": "",
+      "mismatch": "",
+      "unknown": "",
+      "error": ""
     }
   },
   "specials": {

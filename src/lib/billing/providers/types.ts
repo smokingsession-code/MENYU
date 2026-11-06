@@ -13,38 +13,50 @@ export interface CollectionRequest {
   amountUgx: number;
   /** International digits, e.g. 256772123456. */
   phone: string;
-  network: "mtn" | "airtel";
-  /** Our reference, echoed back in the webhook. */
+  /** Our reference, echoed back in the webhook. Letters, digits and - _ . : only. */
   reference: string;
   description: string;
+  /** Where the provider sends the owner back after paying. */
+  callbackUrl: string;
+  /** For providers that push a prompt to one network directly. */
+  network?: "mtn" | "airtel";
 }
 
 export type CollectionResult =
   | { ok: true; providerRef: string; status: "pending" | "succeeded"; redirectUrl?: string }
   | { ok: false; error: "not_supported" | "declined" | "unavailable" };
 
-/** A provider's webhook, verified and translated into our terms. */
+/** A payment's state at the provider, verified with the provider itself. */
 export interface PaymentEvent {
   providerRef: string;
   reference: string;
   status: "succeeded" | "failed" | "pending";
   amountUgx: number;
+  currency: string;
   method: "mtn_momo" | "airtel_money" | "card" | "other";
   transactionId: string | null;
   paidAt: Date;
   raw: unknown;
 }
 
+/** A webhook the provider sent, with the reply it expects. */
+export interface WebhookCall {
+  event: PaymentEvent;
+  /** The response to send: `processed` is false when we could not record it (the provider retries). */
+  reply(processed: boolean): Response;
+}
+
 export interface PaymentProvider {
   id: ProviderId;
   /** True when owners can pay inside the app. False for manual payments. */
   collects: boolean;
-  /** Asks the owner's phone to approve a mobile money payment. */
+  /** Starts a payment: a checkout page to send the owner to, or a prompt on their phone. */
   startCollection(request: CollectionRequest): Promise<CollectionResult>;
+  /** The payment's current state, asked of the provider (never taken from a request). */
+  checkStatus(providerRef: string): Promise<PaymentEvent | null>;
   /**
-   * Verifies a webhook (signature, and the payment's status with the
-   * provider's API) and returns it as a payment event, or null when the
-   * request is not a payment event this provider sent.
+   * Reads a webhook and verifies it with the provider. Null when the request
+   * is not a payment notification this provider sent.
    */
-  parseWebhook(request: Request): Promise<PaymentEvent | null>;
+  parseWebhook(request: Request): Promise<WebhookCall | null>;
 }

@@ -7,6 +7,9 @@ export const manualProvider: PaymentProvider = {
   async startCollection() {
     return { ok: false, error: "not_supported" };
   },
+  async checkStatus() {
+    return null;
+  },
   async parseWebhook() {
     return null;
   },

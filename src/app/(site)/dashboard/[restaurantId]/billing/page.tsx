@@ -1,4 +1,6 @@
-import { Badge, Card } from "@/components/ui/card";
+import { Alert, Badge, Card } from "@/components/ui/card";
+import { PayNowButton } from "@/components/dashboard/pay-now";
+import { activeProvider } from "@/lib/billing/providers";
 import { ButtonAnchor } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { PLANS, type PlanCode } from "@/config/plans";
@@ -37,8 +39,12 @@ function priceLine(plan: PlanCode, interval: "month" | "year", branches: number)
   return price === null ? null : t(interval === "year" ? "billing.perYear" : "billing.perMonth", { amount: formatUGX(price) });
 }
 
-export default async function BillingPage({ params }: PageProps<"/dashboard/[restaurantId]/billing">) {
+const OUTCOMES = new Set(["paid", "already_paid", "pending", "failed", "mismatch", "unknown", "error"]);
+
+export default async function BillingPage({ params, searchParams }: PageProps<"/dashboard/[restaurantId]/billing">) {
   const { restaurantId } = await params;
+  const { pay } = await searchParams;
+  const outcome = typeof pay === "string" && OUTCOMES.has(pay) ? pay : null;
   // Staff never see billing.
   await requireRestaurantAccess(restaurantId, ["owner"]);
   const ctx = await getDashboardContext(restaurantId);
@@ -58,6 +64,7 @@ export default async function BillingPage({ params }: PageProps<"/dashboard/[res
   const sub = ctx.subscription ?? { plan: "free", status: "free", billing_interval: "month", trial_ends_at: null, paid_until: null, grace_days: 7 };
   const summary = billingSummary(sub, new Date(), ctx.branches.length);
   const momo = settings.momo;
+  const online = activeProvider().collects;
   const support = settings.supportWhatsapp;
   const features = sectionStrings("en", "billing");
   const featureList = (plan: PlanCode) =>
@@ -68,6 +75,11 @@ export default async function BillingPage({ params }: PageProps<"/dashboard/[res
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">{t("billing.title")}</h1>
+      {outcome ? (
+        <Alert tone={outcome === "paid" || outcome === "already_paid" ? "success" : outcome === "pending" ? "info" : "error"}>
+          {t(`billing.outcome.${outcome}` as MessageKey)}
+        </Alert>
+      ) : null}
 
       <Card className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -81,6 +93,17 @@ export default async function BillingPage({ params }: PageProps<"/dashboard/[res
       {summary.amountUgx ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-extrabold">{t("billing.howToPay")}</h2>
+          {online ? (
+            <div className="space-y-2 rounded-xl border-2 border-brand bg-brand-soft p-3">
+              <PayNowButton
+                restaurantId={restaurantId}
+                label={t("billing.payNow", { amount: formatUGX(summary.amountUgx) })}
+                working={t("billing.paying")}
+              />
+              <p className="text-sm">{t("billing.payNowHint")}</p>
+            </div>
+          ) : null}
+          {online && hasMomo(momo) ? <p className="font-bold">{t("billing.orPayManually")}</p> : null}
           {hasMomo(momo) ? (
             <>
               <p>{t("billing.howToPayIntro", { amount: formatUGX(summary.amountUgx) })}</p>

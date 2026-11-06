@@ -19,7 +19,8 @@
     "admin:add": "tsx --conditions=react-server --env-file=.env.local scripts/add-admin.ts",
     "i18n:sync": "tsx scripts/sync-lg.ts",
     "seed:demo": "tsx --conditions=react-server --env-file=.env.local scripts/seed-demo.ts",
-    "i18n:status": "tsx scripts/lg-status.ts"
+    "i18n:status": "tsx scripts/lg-status.ts",
+    "pesapal:ipn": "tsx --env-file-if-exists=.env.local scripts/pesapal-ipn.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
