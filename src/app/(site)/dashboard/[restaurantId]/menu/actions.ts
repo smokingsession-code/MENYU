@@ -154,14 +154,15 @@ export async function createCategoryAction(restaurantId: string, menuId: string,
 export async function updateCategoryAction(
   restaurantId: string,
   categoryId: string,
-  changes: { name?: string; is_hidden?: boolean },
+  changes: { name?: string; name_lg?: string; is_hidden?: boolean },
 ): Promise<ActionResult> {
-  const update: { name?: string; is_hidden?: boolean } = {};
+  const update: { name?: string; name_lg?: string | null; is_hidden?: boolean } = {};
   if (changes.name !== undefined) {
     const clean = changes.name.trim().slice(0, 80);
     if (!clean) return { ok: false, error: t("editor.errors.categoryName") };
     update.name = clean;
   }
+  if (changes.name_lg !== undefined) update.name_lg = changes.name_lg.trim().slice(0, 80) || null;
   if (changes.is_hidden !== undefined) update.is_hidden = changes.is_hidden;
   const supabase = await owner(restaurantId);
   const { error } = await supabase.from("categories").update(update).eq("id", categoryId).eq("restaurant_id", restaurantId);

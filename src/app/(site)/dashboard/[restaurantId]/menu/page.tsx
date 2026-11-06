@@ -3,7 +3,7 @@ import { Alert } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { MenuEditor, type EditorCategory } from "@/components/dashboard/menu-editor";
 import type { EditorItem } from "@/components/dashboard/item-editor";
-import { PLANS } from "@/config/plans";
+import { PLANS, planHas } from "@/config/plans";
 import { getDashboardContext } from "@/lib/dashboard";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { photoStrings } from "@/lib/dashboard-strings";
@@ -104,7 +104,7 @@ export default async function MenuPage({ params, searchParams }: PageProps<"/das
         freeLimit={ctx.role === "admin" && ctx.plan === "free" ? PLANS.free.limits.items : null}
         s={strings}
         tagLabels={{ popular: t("diner.tags.popular"), spicy: t("diner.tags.spicy"), vegetarian: t("diner.tags.vegetarian"), new: t("diner.tags.new") }}
-        photoStrings={photoStrings()}
+        photoStrings={photoStrings("en", { enhance: planHas(ctx.plan, "photo_enhance") })}
       />
     </div>
   );

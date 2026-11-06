@@ -210,7 +210,7 @@ export function MenuEditor({
                       last={index === filtered.length - 1}
                       s={s}
                       onMove={(delta) => move(category.id, null, delta)}
-                      onRename={(name) => run(() => updateCategoryAction(restaurantId, category.id, { name }))}
+                      onRename={(name, name_lg) => run(() => updateCategoryAction(restaurantId, category.id, { name, name_lg }))}
                       onToggleHidden={() => run(() => updateCategoryAction(restaurantId, category.id, { is_hidden: !category.is_hidden }))}
                       onDelete={() => {
                         if (window.confirm(fill(s.deleteCategoryConfirm, { name: category.name, count: category.items.length }))) {
@@ -368,28 +368,37 @@ function CategoryHeader({
   last: boolean;
   s: Strings;
   onMove: (delta: -1 | 1) => void;
-  onRename: (name: string) => void;
+  onRename: (name: string, nameLg: string) => void;
   onToggleHidden: () => void;
   onDelete: () => void;
 }) {
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(category.name);
+  const [nameLg, setNameLg] = useState(category.name_lg ?? "");
   return (
     <div className="flex items-center gap-1 border-b border-line px-2 py-2">
       {handle ? <DragHandle handle={handle} label={s.drag} /> : null}
       {renaming ? (
         <form
-          className="flex flex-1 gap-2"
+          className="flex flex-1 flex-wrap gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             setRenaming(false);
-            if (name.trim() && name.trim() !== category.name) onRename(name);
+            if (name.trim() && (name.trim() !== category.name || nameLg.trim() !== (category.name_lg ?? ""))) onRename(name, nameLg);
           }}
         >
-          <input aria-label={s.rename} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={`${inputClass} flex-1`} autoFocus />
+          <input aria-label={s.rename} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={`${inputClass} min-w-0 flex-1`} autoFocus />
           <Button type="submit" size="sm" variant="brand">
             {s.saveShort}
           </Button>
+          <input
+            aria-label={s.categoryLg}
+            placeholder={s.categoryLg}
+            value={nameLg}
+            maxLength={80}
+            onChange={(e) => setNameLg(e.target.value)}
+            className={`${inputClass} w-full`}
+          />
         </form>
       ) : (
         <h2 id={`cat-${category.id}`} className="min-w-0 flex-1 truncate px-2 text-lg font-extrabold">

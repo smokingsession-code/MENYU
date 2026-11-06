@@ -101,7 +101,8 @@
       "settings": "Settings",
       "overview": "Overview",
       "requests": "Requests",
-      "agents": "Agents"
+      "agents": "Agents",
+      "directory": "Directory"
     },
     "restaurants": {
       "title": "Restaurants",
@@ -363,13 +364,66 @@
         "amount": "Enter an amount in UGX.",
         "failed": "Couldn't save. Please try again."
       }
+    },
+    "directory": {
+      "title": "Directory",
+      "intro": "\"Menus near me\" lists approved restaurants on Standard and Pro. Keep it off until there are about 30 listings.",
+      "switchOn": "Switch the directory on",
+      "switchOff": "Switch the directory off",
+      "isOn": "The directory is on.",
+      "isOff": "The directory is off. Only admins can see it.",
+      "listedCount": "Approved listings: {count}",
+      "preview": "Open the directory",
+      "pending": "Waiting for approval",
+      "approved": "Listed",
+      "none": "None.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "unlist": "Remove",
+      "feature": "Feature",
+      "unfeature": "Stop featuring",
+      "featuredBadge": "Featured",
+      "proOnly": "Featuring is for Pro restaurants."
     }
   },
   "home": {
     "tagline": "Your menu, on every phone.",
     "intro": "A QR menu for restaurants, cafés, lounges and bars. Diners scan, see your menu and order on WhatsApp.",
     "signIn": "Restaurant sign in",
-    "demo": "See a demo menu"
+    "demo": "See a demo menu",
+    "metaTitle": "{brand}: QR menus for restaurants in Kampala",
+    "metaDescription": "Put your menu on every table with a QR code. Diners scan, choose and order on WhatsApp. Free to start.",
+    "chat": "Chat with us on WhatsApp",
+    "chatMessage": "Hello! I'd like a QR menu for my restaurant.",
+    "start": "Start free",
+    "benefitsTitle": "Why restaurants use {brand}",
+    "benefits": {
+      "print": "Stop reprinting menus",
+      "printBody": "Change a price or mark a dish sold out from your phone. Every table sees it at once.",
+      "orders": "Get orders on WhatsApp",
+      "ordersBody": "Diners pick dishes and send the order to your WhatsApp, with their table number.",
+      "momo": "Get paid by Mobile Money",
+      "momoBody": "Show your MTN and Airtel merchant codes with the bill total.",
+      "phones": "Works on every phone",
+      "phonesBody": "No app to download. Fast on cheap phones and slow mobile data."
+    },
+    "stepsTitle": "How it works",
+    "steps": {
+      "one": "Send us a photo of your menu",
+      "oneBody": "We set it up for you, or you do it yourself in minutes.",
+      "two": "Put QR codes on your tables",
+      "twoBody": "Print the table cards we make for you, in your colours.",
+      "three": "Diners scan and order",
+      "threeBody": "Orders arrive on your WhatsApp. Diners can call the waiter and pay by MoMo."
+    },
+    "pricingTitle": "Simple prices in shillings",
+    "pricingIntro": "Start with a free {days}-day trial of Standard. No card needed.",
+    "perMonth": "a month",
+    "perBranch": "a month per branch",
+    "orYear": "or {amount} a year",
+    "directory": "Hungry? Find menus near you",
+    "finalTitle": "Ready to put your menu on every phone?",
+    "footerNote": "Made in Kampala."
   },
   "diner": {
     "metaTitle": "{restaurant}, {area}: menu and prices",
@@ -533,7 +587,8 @@
     "tables": "Tables",
     "profile": "Profile",
     "adminView": "Admin view",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "staff": "Staff"
   },
   "editor": {
     "title": "Menu",
@@ -620,7 +675,8 @@
       "optionPrice": "Every size and add-on needs a price."
     },
     "fromPhotos": "Import from photos",
-    "imported": "{count} dishes added to your menu. Check them below."
+    "imported": "{count} dishes added to your menu. Check them below.",
+    "categoryLg": "Name in Luganda (optional)"
   },
   "photos": {
     "add": "Add photo",
@@ -637,7 +693,15 @@
       "tooBig": "This photo is too big. Choose a smaller one.",
       "failed": "The photo didn't upload. Check your connection and try again.",
       "tooMany": "Too many uploads. Wait a while and try again."
-    }
+    },
+    "enhance": "Auto-fix photo",
+    "enhancing": "Fixing…",
+    "enhanceTitle": "Before and after",
+    "before": "Before",
+    "after": "After",
+    "useFixed": "Use the fixed photo",
+    "keepOriginal": "Keep the original",
+    "enhanceFailed": "Couldn't fix this photo. Try again."
   },
   "profile": {
     "title": "Profile",
@@ -715,7 +779,23 @@
       "hours": "Check the opening hours: each open day needs an opening and a closing time.",
       "color": "Pick a colour.",
       "momo": "Merchant codes are numbers only."
-    }
+    },
+    "directory": {
+      "title": "Menus near me",
+      "body": "List your restaurant in the {brand} directory so people nearby find your menu.",
+      "freeBody": "Listing in Menus near me comes with the Standard plan.",
+      "list": "List my restaurant",
+      "unlist": "Remove my listing",
+      "status": {
+        "hidden": "Not listed.",
+        "pending": "Waiting for the Menyu team to approve.",
+        "approved": "Listed.",
+        "rejected": "Not approved. Chat with us to find out why."
+      }
+    },
+    "descriptionLg": "Description in Luganda (optional)",
+    "lugandaTitle": "In Luganda",
+    "lugandaHint": "Diners see a Luganda switch on your menu once something is written in Luganda."
   },
   "tables": {
     "title": "Tables and QR codes",
@@ -836,7 +916,11 @@
     "referBody": "When a restaurant you invite starts paying, you get a month free.",
     "referShare": "Share on WhatsApp",
     "referMessage": "We use {brand} for our menu: diners scan a QR code and order on WhatsApp. Try it with my link: {url}",
-    "referStats": "Invited: {invited} · Free months earned: {months}"
+    "referStats": "Invited: {invited} · Free months earned: {months}",
+    "staff": "Staff",
+    "staffHint": "Invite your team",
+    "branches": "Branches",
+    "branchesHint": "Your other locations"
   },
   "import": {
     "title": "Import your menu from photos",
@@ -1047,7 +1131,7 @@
         "insights": "Insights: views, busy hours, top dishes",
         "feedback": "Private feedback from diners",
         "waiter": "Call the waiter and Bring the bill",
-        "photos": "AI photo enhance",
+        "photos": "Photo auto-fix for dish photos",
         "staff": "Staff accounts",
         "branches": "Several branches",
         "featured": "Featured in Menus near me"
@@ -1108,7 +1192,10 @@
       "price": "Enter the price in shillings, like 15,000.",
       "dates": "The end date must be after the start date.",
       "failed": "Couldn't save. Please try again."
-    }
+    },
+    "luganda": "In Luganda",
+    "nameLg": "Title in Luganda",
+    "descriptionLg": "Description in Luganda"
   },
   "feedback": {
     "title": "Feedback",
@@ -1152,5 +1239,87 @@
     "count": "{count} views",
     "ordersCount": "{count} orders",
     "peak": "Most: {count}"
+  },
+  "directory": {
+    "title": "Menus near me",
+    "metaTitle": "Menus near me in Kampala | {brand}",
+    "metaDescription": "Browse restaurant, café and bar menus in Ntinda, Najjera, Kira, Bweyogerere and more. Search for rolex, pork, pizza and order on WhatsApp.",
+    "intro": "See the menu before you go, then order on WhatsApp.",
+    "search": "Search dishes or restaurants",
+    "searchPlaceholder": "rolex, pork, pizza…",
+    "area": "Area",
+    "anyArea": "Any area",
+    "cuisine": "Food",
+    "anyCuisine": "Any food",
+    "price": "Price",
+    "anyPrice": "Any price",
+    "prices": {
+      "1": "Budget",
+      "2": "Mid-range",
+      "3": "Upmarket",
+      "4": "Fine dining"
+    },
+    "openNow": "Open now",
+    "show": "Show menus",
+    "results": "Menus: {count}",
+    "none": "No menus match. Try another area or dish.",
+    "featured": "Featured",
+    "open": "Open now",
+    "closed": "Closed now",
+    "matches": "Has {dishes}",
+    "adminPreview": "The directory is switched off: only you can see this page."
+  },
+  "staff": {
+    "title": "Staff",
+    "intro": "Staff sign in with their phone. They can mark dishes sold out and read feedback, but can't change your menu, settings or billing.",
+    "proOnly": "Staff accounts come with the Pro plan.",
+    "invite": "Invite a staff member",
+    "phone": "Their phone number",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "send": "Create invite",
+    "created": "Invite ready. Send them the link:",
+    "sendWhatsApp": "Send on WhatsApp",
+    "inviteMessage": "You're invited to help run {restaurant} on {brand}. Open this link and sign in with this phone number: {url}",
+    "copyLink": "Copy link",
+    "team": "Your staff",
+    "noStaff": "No staff yet.",
+    "pendingTitle": "Invites not used yet",
+    "remove": "Remove",
+    "removeConfirm": "Remove {name}? They can no longer open this dashboard.",
+    "cancel": "Cancel invite",
+    "errors": {
+      "phone": "Enter a valid phone number, like 0772 123 456.",
+      "failed": "Couldn't create the invite. Please try again."
+    }
+  },
+  "branches": {
+    "title": "Branches",
+    "intro": "Each branch has its own menu link, QR codes, hours and WhatsApp number. Pro is charged for each branch.",
+    "proOnly": "Several branches come with the Pro plan: UGX 50,000 a month for each branch.",
+    "main": "Main",
+    "sharedMenu": "Same menu as the main branch",
+    "ownMenu": "Its own menu",
+    "add": "Add a branch",
+    "name": "Branch name",
+    "namePlaceholder": "e.g. Kira branch",
+    "area": "Area",
+    "whatsapp": "WhatsApp number for orders",
+    "whatsappHint": "Leave empty to use the main branch's number.",
+    "menu": "Menu",
+    "menuShared": "Same menu as the main branch",
+    "menuSharedHint": "Changes show at every branch.",
+    "menuCopy": "A copy to change separately",
+    "menuCopyHint": "Starts with everything on your main menu.",
+    "menuEmpty": "Start with an empty menu",
+    "create": "Add branch",
+    "created": "Branch added.",
+    "switch": "Branch",
+    "price": "With {count} branches, Pro is {amount} a month.",
+    "errors": {
+      "name": "Give the branch a name.",
+      "whatsapp": "Enter a valid WhatsApp number, like 0772 123 456.",
+      "failed": "Couldn't add the branch. Please try again."
+    }
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { CUISINES } from "@/config/cuisines";
 import { useState, useTransition } from "react";
 import { saveProfileAction, type ProfileInput } from "@/app/(site)/dashboard/[restaurantId]/profile/actions";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,12 @@ import { PhotoPicker, type PhotoStrings } from "./photo-picker";
 
 type Strings = Record<string, string>;
 
-export const CUISINES = ["Ugandan", "Café", "Grill", "Bar", "Lounge", "Fast food", "Pizza", "Chinese", "Indian", "Bakery", "Juice", "Seafood", "Vegetarian"];
 const COLORS = ["#1E5B3A", "#2F7A3E", "#0F766E", "#1D4ED8", "#6D28D9", "#B91C1C", "#C2410C", "#A16207", "#111827"];
 
 export interface ProfileValues {
   name: string;
   description: string | null;
+  descriptionLg: string | null;
   brandColor: string;
   logo: ImageDescriptor | null;
   cover: ImageDescriptor | null;
@@ -68,6 +69,7 @@ export function ProfileForm({
   const [v, setV] = useState({
     ...initial,
     description: initial.description ?? "",
+    descriptionLg: initial.descriptionLg ?? "",
     area: initial.area ?? "",
     address: initial.address ?? "",
     whatsapp: initial.whatsapp ? formatPhoneLocal(initial.whatsapp) : "",
@@ -104,6 +106,7 @@ export function ProfileForm({
     const input: ProfileInput = {
       name: v.name,
       description: v.description,
+      descriptionLg: v.descriptionLg,
       brandColor: v.brandColor,
       cuisines: v.cuisines,
       priceRange: v.priceRange,
@@ -181,6 +184,14 @@ export function ProfileForm({
         </Field>
         <Field id="p-description" label={s.description} optionalLabel={s.optional}>
           <textarea id="p-description" value={v.description} maxLength={500} rows={2} placeholder={s.descriptionPlaceholder} onChange={(e) => set("description", e.target.value)} className={`${inputClass} py-2`} />
+          <details className="mt-2 rounded-xl border border-line p-3" open={Boolean(v.descriptionLg)}>
+            <summary className="min-h-8 cursor-pointer font-bold">{s.lugandaTitle}</summary>
+            <p className="mt-1 text-sm text-muted">{s.lugandaHint}</p>
+            <label htmlFor="p-description-lg" className="mt-2 block text-sm font-bold">
+              {s.descriptionLg}
+            </label>
+            <textarea id="p-description-lg" value={v.descriptionLg} maxLength={500} rows={2} onChange={(e) => set("descriptionLg", e.target.value)} className={`${inputClass} py-2`} />
+          </details>
         </Field>
         <fieldset>
           <legend className="mb-2 font-bold">{s.cuisines}</legend>

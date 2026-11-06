@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { changeSubscription, PAYMENT_KINDS, PAYMENT_METHODS, recordPayment, removePayment } from "@/lib/billing/record";
@@ -10,6 +10,7 @@ import { getTranslator } from "@/lib/i18n";
 import { expireMenu } from "@/lib/menu/expire";
 import { normalizePhone } from "@/lib/phone";
 import { saveBillingSettings } from "@/lib/settings";
+import { SITE_SETTINGS_TAG } from "@/lib/site-settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const t = getTranslator("en");
@@ -188,6 +189,7 @@ export async function saveSettingsAction(input: SettingsFormInput): Promise<{ ok
     admin.id,
   );
   if (!saved) return { ok: false, error: failure.failed };
+  updateTag(SITE_SETTINGS_TAG);
   refresh();
   return { ok: true };
 }

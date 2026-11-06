@@ -24,8 +24,8 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 5 | Plans, limits, trials, manual billing, reminders, grace period | Done |
 | 6 | Specials, call the waiter, MoMo pay info, feedback, insights | Done |
 | 7 | Admin: setup queue, agents, referrals, overview | Done |
-| 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Next |
-| 9 | Flutterwave or Pesapal mobile money | |
+| 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Done |
+| 9 | Flutterwave or Pesapal mobile money | Next |
 
 ## Run it locally
 
@@ -87,10 +87,35 @@ allowed country codes (Uganda by default), and sending is rate limited per
 IP and per number. The SMS ends with a WebOTP line so Chrome on Android can
 fill the code in.
 
+**Marketing site and directory.** The home page (`/`) explains the product,
+shows prices from `src/config/plans.ts`, links to the demo menu and opens
+WhatsApp to the number in Admin > Settings. It is static and refreshed when
+settings change. "Menus near me" (`/menus`) lists approved restaurants on
+Standard and Pro by area, food, price and open now, and finds dishes as well
+as names ("rolex", "pork"). Featured (Pro) restaurants come first. It stays
+behind the switch in Admin > Directory (only admins can see it while it is
+off), where you also approve the listings owners ask for (Dashboard > Profile)
+and choose featured restaurants. Listed menus are indexable and appear in
+`/sitemap.xml`.
+
+**Pro: branches, staff and photo auto-fix.** Branches (Dashboard > Branches)
+each get their own menu link, QR codes, hours and WhatsApp number, with the
+main menu shared, copied or empty (`add_branch`). Once there is more than
+one, a branch switcher appears at the top of the dashboard. Pro is charged
+per branch. Staff are invited by phone (Dashboard > Staff) with a link to
+send on WhatsApp; they can mark dishes sold out and read feedback, nothing
+else. Photo auto-fix evens out exposure and colour on dish and cover photos
+with sharp, shows before and after, and replaces the photo only when the
+owner chooses. It sits behind a small interface (`src/lib/images/enhance.ts`)
+so an AI service can be added later.
+
 **Translations** are in `messages/en.json`. `messages/lg.json` has the same
 keys with empty values for a native Luganda speaker to fill in; empty strings
 fall back to English. Run `npm run i18n:sync` after adding English strings.
-Never machine-translate Luganda into it.
+Never machine-translate Luganda into it. `TRANSLATING.md` is the guide for the
+native speaker, and `npm run i18n:status` shows how far it has got. Owners can
+write Luganda dish, section, special and description text; the diner's menu
+then shows an English/Luganda switch.
 
 **The diner menu** (`/r/[slug]`) is rendered once, cached for everyone and
 expired through its cache tag when the owner changes something. The table

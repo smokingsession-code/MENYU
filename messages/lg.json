@@ -101,7 +101,8 @@
       "settings": "",
       "overview": "",
       "requests": "",
-      "agents": ""
+      "agents": "",
+      "directory": ""
     },
     "restaurants": {
       "title": "",
@@ -363,13 +364,66 @@
         "amount": "",
         "failed": ""
       }
+    },
+    "directory": {
+      "title": "",
+      "intro": "",
+      "switchOn": "",
+      "switchOff": "",
+      "isOn": "",
+      "isOff": "",
+      "listedCount": "",
+      "preview": "",
+      "pending": "",
+      "approved": "",
+      "none": "",
+      "approve": "",
+      "reject": "",
+      "unlist": "",
+      "feature": "",
+      "unfeature": "",
+      "featuredBadge": "",
+      "proOnly": ""
     }
   },
   "home": {
     "tagline": "",
     "intro": "",
     "signIn": "",
-    "demo": ""
+    "demo": "",
+    "metaTitle": "",
+    "metaDescription": "",
+    "chat": "",
+    "chatMessage": "",
+    "start": "",
+    "benefitsTitle": "",
+    "benefits": {
+      "print": "",
+      "printBody": "",
+      "orders": "",
+      "ordersBody": "",
+      "momo": "",
+      "momoBody": "",
+      "phones": "",
+      "phonesBody": ""
+    },
+    "stepsTitle": "",
+    "steps": {
+      "one": "",
+      "oneBody": "",
+      "two": "",
+      "twoBody": "",
+      "three": "",
+      "threeBody": ""
+    },
+    "pricingTitle": "",
+    "pricingIntro": "",
+    "perMonth": "",
+    "perBranch": "",
+    "orYear": "",
+    "directory": "",
+    "finalTitle": "",
+    "footerNote": ""
   },
   "diner": {
     "metaTitle": "",
@@ -533,7 +587,8 @@
     "tables": "",
     "profile": "",
     "adminView": "",
-    "feedback": ""
+    "feedback": "",
+    "staff": ""
   },
   "editor": {
     "title": "",
@@ -620,7 +675,8 @@
       "optionPrice": ""
     },
     "fromPhotos": "",
-    "imported": ""
+    "imported": "",
+    "categoryLg": ""
   },
   "photos": {
     "add": "",
@@ -637,7 +693,15 @@
       "tooBig": "",
       "failed": "",
       "tooMany": ""
-    }
+    },
+    "enhance": "",
+    "enhancing": "",
+    "enhanceTitle": "",
+    "before": "",
+    "after": "",
+    "useFixed": "",
+    "keepOriginal": "",
+    "enhanceFailed": ""
   },
   "profile": {
     "title": "",
@@ -715,7 +779,23 @@
       "hours": "",
       "color": "",
       "momo": ""
-    }
+    },
+    "directory": {
+      "title": "",
+      "body": "",
+      "freeBody": "",
+      "list": "",
+      "unlist": "",
+      "status": {
+        "hidden": "",
+        "pending": "",
+        "approved": "",
+        "rejected": ""
+      }
+    },
+    "descriptionLg": "",
+    "lugandaTitle": "",
+    "lugandaHint": ""
   },
   "tables": {
     "title": "",
@@ -836,7 +916,11 @@
     "referBody": "",
     "referShare": "",
     "referMessage": "",
-    "referStats": ""
+    "referStats": "",
+    "staff": "",
+    "staffHint": "",
+    "branches": "",
+    "branchesHint": ""
   },
   "import": {
     "title": "",
@@ -1108,7 +1192,10 @@
       "price": "",
       "dates": "",
       "failed": ""
-    }
+    },
+    "luganda": "",
+    "nameLg": "",
+    "descriptionLg": ""
   },
   "feedback": {
     "title": "",
@@ -1152,5 +1239,87 @@
     "count": "",
     "ordersCount": "",
     "peak": ""
+  },
+  "directory": {
+    "title": "",
+    "metaTitle": "",
+    "metaDescription": "",
+    "intro": "",
+    "search": "",
+    "searchPlaceholder": "",
+    "area": "",
+    "anyArea": "",
+    "cuisine": "",
+    "anyCuisine": "",
+    "price": "",
+    "anyPrice": "",
+    "prices": {
+      "1": "",
+      "2": "",
+      "3": "",
+      "4": ""
+    },
+    "openNow": "",
+    "show": "",
+    "results": "",
+    "none": "",
+    "featured": "",
+    "open": "",
+    "closed": "",
+    "matches": "",
+    "adminPreview": ""
+  },
+  "staff": {
+    "title": "",
+    "intro": "",
+    "proOnly": "",
+    "invite": "",
+    "phone": "",
+    "branch": "",
+    "allBranches": "",
+    "send": "",
+    "created": "",
+    "sendWhatsApp": "",
+    "inviteMessage": "",
+    "copyLink": "",
+    "team": "",
+    "noStaff": "",
+    "pendingTitle": "",
+    "remove": "",
+    "removeConfirm": "",
+    "cancel": "",
+    "errors": {
+      "phone": "",
+      "failed": ""
+    }
+  },
+  "branches": {
+    "title": "",
+    "intro": "",
+    "proOnly": "",
+    "main": "",
+    "sharedMenu": "",
+    "ownMenu": "",
+    "add": "",
+    "name": "",
+    "namePlaceholder": "",
+    "area": "",
+    "whatsapp": "",
+    "whatsappHint": "",
+    "menu": "",
+    "menuShared": "",
+    "menuSharedHint": "",
+    "menuCopy": "",
+    "menuCopyHint": "",
+    "menuEmpty": "",
+    "create": "",
+    "created": "",
+    "switch": "",
+    "price": "",
+    "errors": {
+      "name": "",
+      "whatsapp": "",
+      "failed": ""
+    }
   }
 }

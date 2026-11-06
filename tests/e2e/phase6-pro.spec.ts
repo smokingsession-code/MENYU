@@ -99,7 +99,7 @@ test.describe("phase 6: specials, waiter, Mobile Money, feedback and insights", 
     await expect(ownerPage.getByText("Lunch deal")).toBeVisible();
     await ownerPage.getByRole("button", { name: "+ Add a special" }).click();
     const form = ownerPage.getByRole("dialog", { name: "New special" });
-    await form.getByLabel("Title").fill("Rolex Tuesday");
+    await form.getByLabel("Title", { exact: true }).fill("Rolex Tuesday");
     await form.getByLabel("Price (UGX)").fill("5k");
     await form.getByRole("button", { name: "Save special" }).click();
     await expect(ownerPage.getByText("Special saved.")).toBeVisible();

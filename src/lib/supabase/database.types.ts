@@ -691,7 +691,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "add_tables":
+            "add_branch":
+{ Args: { "p_area"?: string,"p_menu"?: string,"p_name": string,"p_restaurant_id": string,"p_whatsapp"?: string }; Returns: Json
+                           },
+"add_tables":
 { Args: { "p_branch_id": string,"p_labels": (string)[] }; Returns: number
                            },
 "apply_billing_status":
@@ -708,6 +711,9 @@ isOneToOne: false
                            },
 "create_restaurant":
 { Args: { "p_agent_code"?: string,"p_area"?: string,"p_name": string,"p_owner_email"?: string,"p_owner_phone"?: string,"p_referral_code"?: string,"p_trial_days"?: number,"p_whatsapp"?: string }; Returns: Json
+                           },
+"directory_search":
+{ Args: { "p_area"?: string,"p_cuisine"?: string,"p_limit"?: number,"p_price"?: number,"p_query"?: string }; Returns: Json
                            },
 "get_public_menu":
 { Args: { "p_slug": string }; Returns: Json
@@ -738,6 +744,9 @@ isOneToOne: false
                            },
 "reorder":
 { Args: { "p_ids": (string)[],"p_kind": string }; Returns: number
+                           },
+"request_directory_listing":
+{ Args: { "p_listed": boolean,"p_restaurant_id": string }; Returns: string
                            },
 "restaurant_insights":
 { Args: { "p_days"?: number,"p_restaurant_id": string }; Returns: Json

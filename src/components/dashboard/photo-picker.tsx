@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { attachPhotoAction, createPhotoUploadAction, removePhotoAction, type PhotoTarget } from "@/app/(site)/dashboard/[restaurantId]/photo-actions";
+import {
+  applyEnhancedPhotoAction,
+  attachPhotoAction,
+  createPhotoUploadAction,
+  discardEnhancedPhotoAction,
+  enhancePhotoAction,
+  removePhotoAction,
+  type PhotoTarget,
+} from "@/app/(site)/dashboard/[restaurantId]/photo-actions";
 import { buttonClass } from "@/components/ui/button";
 import { imageUrl, pickWidth, type ImageDescriptor } from "@/lib/images/shared";
 
@@ -23,6 +31,16 @@ export interface PhotoStrings {
   processing: string;
   errorFormat: string;
   errorFailed: string;
+  /** Present on plans with auto-fix (Pro). */
+  enhance?: {
+    button: string;
+    working: string;
+    title: string;
+    before: string;
+    after: string;
+    use: string;
+    keep: string;
+  };
 }
 
 const MAX_OUTPUT_WIDTH = { item: 1600, cover: 1600, logo: 600 } as const;
@@ -94,6 +112,33 @@ export function PhotoPicker({
     else onChange(result.photo);
   }
 
+  const [compare, setCompare] = useState<{ before: ImageDescriptor; after: ImageDescriptor } | null>(null);
+
+  async function enhance() {
+    if (!s.enhance) return;
+    setError(null);
+    setStatus(s.enhance.working);
+    const result = await enhancePhotoAction(restaurantId, target);
+    setStatus(null);
+    if (!result.ok) return setError(result.error);
+    setCompare({ before: result.before, after: result.after });
+  }
+
+  async function decide(useFixed: boolean) {
+    if (!compare) return;
+    const { after } = compare;
+    setCompare(null);
+    if (!useFixed) {
+      await discardEnhancedPhotoAction(restaurantId, target, after);
+      return;
+    }
+    setStatus(s.processing);
+    const result = await applyEnhancedPhotoAction(restaurantId, target, after);
+    setStatus(null);
+    if (!result.ok) setError(result.error);
+    else onChange(result.photo);
+  }
+
   async function remove() {
     setError(null);
     const result = await removePhotoAction(restaurantId, target);
@@ -116,12 +161,48 @@ export function PhotoPicker({
         <button type="button" className={buttonClass("outline", "sm")} onClick={() => inputRef.current?.click()} disabled={status !== null}>
           {value ? s.change : s.add}
         </button>
+        {value && s.enhance && kind !== "logo" ? (
+          <button type="button" className={buttonClass("outline", "sm")} onClick={enhance} disabled={status !== null}>
+            ✨ {s.enhance.button}
+          </button>
+        ) : null}
         {value ? (
           <button type="button" className={buttonClass("ghost", "sm")} onClick={remove} disabled={status !== null}>
             {s.remove}
           </button>
         ) : null}
       </div>
+      {compare && s.enhance ? (
+        <div role="group" aria-label={s.enhance.title} className="space-y-3 rounded-xl border-2 border-brand p-3">
+          <p className="font-extrabold">{s.enhance.title}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                [s.enhance.before, compare.before],
+                [s.enhance.after, compare.after],
+              ] as const
+            ).map(([label, image]) => (
+              <figure key={label} className="space-y-1">
+                <img
+                  src={imageUrl(image, pickWidth(image, 320))}
+                  alt={label}
+                  className="w-full rounded-lg object-cover"
+                  style={{ aspectRatio: String(ASPECT[kind]), backgroundColor: image.color }}
+                />
+                <figcaption className="text-center text-sm font-bold">{label}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={buttonClass("primary", "sm")} onClick={() => decide(true)}>
+              {s.enhance.use}
+            </button>
+            <button type="button" className={buttonClass("ghost", "sm")} onClick={() => decide(false)}>
+              {s.enhance.keep}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {status ? (
         <p role="status" className="text-sm font-bold text-muted">
           {status}

@@ -69,7 +69,7 @@ export default async function ImportPage({ params }: PageProps<"/dashboard/[rest
           <Card>
             <ImportStart
               restaurantId={restaurantId}
-              branches={ctx.branches.map((b) => ({ id: b.id, label: b.name ?? b.area ?? ctx.name }))}
+              branches={ctx.branches.map((b) => ({ id: b.id, label: b.name ?? [ctx.name, b.area].filter(Boolean).join(" · ") }))}
               s={s}
               uploadStrings={sectionStrings("en", "uploads")}
             />

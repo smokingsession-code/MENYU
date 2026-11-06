@@ -13,6 +13,7 @@ const t = getTranslator("en");
 export interface ProfileInput {
   name: string;
   description: string;
+  descriptionLg: string;
   brandColor: string;
   cuisines: string[];
   priceRange: number | null;
@@ -64,7 +65,7 @@ export async function saveProfileAction(restaurantId: string, branchId: string, 
   const supabase = await createClient();
   const restaurant = await supabase
     .from("restaurants")
-    .update({ name, description: clip(input.description, 500), brand_color: input.brandColor, cuisines, price_range: priceRange })
+    .update({ name, description: clip(input.description, 500), description_lg: clip(input.descriptionLg ?? "", 500), brand_color: input.brandColor, cuisines, price_range: priceRange })
     .eq("id", restaurantId);
   if (restaurant.error) {
     console.error("[profile] restaurant update failed", restaurant.error.message);
@@ -100,4 +101,15 @@ export async function saveProfileAction(restaurantId: string, branchId: string, 
   expireMenu(restaurantId);
   refresh();
   return { ok: true };
+}
+
+/** Asks to appear in "Menus near me" (the Menyu team approves), or leaves it. */
+export async function setDirectoryListingAction(restaurantId: string, listed: boolean): Promise<{ ok: true; status: string } | { ok: false; error: string }> {
+  await requireRestaurantAccess(restaurantId, ["owner"]);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("request_directory_listing", { p_restaurant_id: restaurantId, p_listed: listed });
+  if (error) return { ok: false, error: error.code === "42501" ? t("profile.directory.freeBody") : t("common.errorGeneric") };
+  expireMenu(restaurantId);
+  refresh();
+  return { ok: true, status: data as string };
 }

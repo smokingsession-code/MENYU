@@ -32,7 +32,7 @@ export default async function SpecialsPage({ params }: PageProps<"/dashboard/[re
   const [{ data: specials }, { data: categories }] = await Promise.all([
     supabase
       .from("specials")
-      .select("id, title, description, price_ugx, days, start_time, end_time, starts_on, ends_on, is_active, special_items(item_id)")
+      .select("id, title, title_lg, description, description_lg, price_ugx, days, start_time, end_time, starts_on, ends_on, is_active, special_items(item_id)")
       .eq("restaurant_id", restaurantId)
       .is("deleted_at", null)
       .order("sort_order")
@@ -48,7 +48,9 @@ export default async function SpecialsPage({ params }: PageProps<"/dashboard/[re
   const rows: SpecialRow[] = (specials ?? []).map((sp) => ({
     id: sp.id,
     title: sp.title,
+    title_lg: sp.title_lg,
     description: sp.description,
+    description_lg: sp.description_lg,
     price_ugx: sp.price_ugx,
     days: sp.days,
     start_time: sp.start_time,

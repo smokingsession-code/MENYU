@@ -16,7 +16,9 @@ type Strings = Record<string, string>;
 export interface SpecialRow {
   id: string;
   title: string;
+  title_lg: string | null;
   description: string | null;
+  description_lg: string | null;
   price_ugx: number | null;
   days: number[];
   start_time: string;
@@ -66,6 +68,8 @@ function SpecialForm({
   const allDayInitial = initial ? hhmm(initial.start_time) === hhmm(initial.end_time) : false;
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [titleLg, setTitleLg] = useState(initial?.title_lg ?? "");
+  const [descriptionLg, setDescriptionLg] = useState(initial?.description_lg ?? "");
   const [price, setPrice] = useState(initial?.price_ugx != null ? String(initial.price_ugx) : "");
   const [days, setDays] = useState<number[]>(initial?.days ?? [1, 2, 3, 4, 5]);
   const [allDay, setAllDay] = useState(allDayInitial);
@@ -90,6 +94,8 @@ function SpecialForm({
       id: initial?.id,
       title,
       description,
+      titleLg,
+      descriptionLg,
       priceUgx: parsed?.value ?? null,
       days,
       allDay,
@@ -194,6 +200,18 @@ function SpecialForm({
           ))}
         </ul>
       </fieldset>
+
+      <details className="rounded-xl border border-line p-3" open={Boolean(titleLg || descriptionLg)}>
+        <summary className="min-h-8 cursor-pointer font-bold">{s.luganda}</summary>
+        <div className="mt-3 space-y-3">
+          <Field id="sp-title-lg" label={s.nameLg}>
+            <Input id="sp-title-lg" value={titleLg} maxLength={80} onChange={(e) => setTitleLg(e.target.value)} />
+          </Field>
+          <Field id="sp-desc-lg" label={s.descriptionLg}>
+            <textarea id="sp-desc-lg" value={descriptionLg} maxLength={300} rows={2} onChange={(e) => setDescriptionLg(e.target.value)} className={`${inputClass} py-2`} />
+          </Field>
+        </div>
+      </details>
 
       <label className="flex min-h-11 items-center gap-3 font-bold">
         <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-[var(--color-brand)]" />

@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { Alert } from "@/components/ui/card";
+import { Alert, Card } from "@/components/ui/card";
+import { DirectoryListing } from "@/components/dashboard/directory-listing";
+import { planHas } from "@/config/plans";
+import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/dashboard/profile-form";
 import { getDashboardContext } from "@/lib/dashboard";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
@@ -11,6 +14,8 @@ export default async function ProfilePage({ params }: PageProps<"/dashboard/[res
   const { restaurantId } = await params;
   const ctx = await getDashboardContext(restaurantId);
   const b = ctx.branch;
+  const supabase = await createClient();
+  const { data: listing } = await supabase.from("restaurants").select("directory_status").eq("id", restaurantId).maybeSingle();
 
   return (
     <div className="space-y-4">
@@ -34,6 +39,7 @@ export default async function ProfilePage({ params }: PageProps<"/dashboard/[res
           initial={{
             name: ctx.name,
             description: ctx.description,
+            descriptionLg: ctx.descriptionLg,
             brandColor: ctx.brandColor,
             logo: ctx.logo,
             cover: ctx.cover,
@@ -56,9 +62,22 @@ export default async function ProfilePage({ params }: PageProps<"/dashboard/[res
             momoAirtelName: b.momoAirtelName,
           }}
           s={{ ...sectionStrings("en", "profile"), optional: t("common.optional"), saving: t("common.saving") }}
-          photoStrings={photoStrings()}
+          photoStrings={photoStrings("en", { enhance: planHas(ctx.plan, "photo_enhance") })}
         />
       )}
+          {ctx.role !== "staff" ? (
+        <Card className="space-y-2">
+          <h2 className="text-lg font-extrabold">{t("profile.directory.title")}</h2>
+          {planHas(ctx.plan, "directory_listing") ? (
+            <>
+              <p className="text-muted">{t("profile.directory.body")}</p>
+              <DirectoryListing restaurantId={restaurantId} status={listing?.directory_status ?? "hidden"} s={sectionStrings("en", "profile")} />
+            </>
+          ) : (
+            <p className="text-muted">{t("profile.directory.freeBody")}</p>
+          )}
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -152,6 +152,8 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
               { href: `${base}/specials`, title: t("home2.specials"), hint: t("home2.specialsHint"), badge: 0 },
               { href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0 },
               { href: `${base}/insights`, title: t("home2.insights"), hint: t("home2.insightsHint"), badge: 0 },
+              { href: `${base}/staff`, title: t("home2.staff"), hint: t("home2.staffHint"), badge: 0 },
+              { href: `${base}/branches`, title: t("home2.branches"), hint: t("home2.branchesHint"), badge: 0 },
             ].map((tool) => (
               <li key={tool.href}>
                 <Link href={tool.href} className="flex min-h-14 items-center justify-between gap-3 py-2">

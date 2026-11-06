@@ -7,6 +7,7 @@ import { planHas } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { getDashboardContext } from "@/lib/dashboard";
 import { getTranslator } from "@/lib/i18n";
+import { photoEnhancer } from "@/lib/images/enhance";
 import { storeImage } from "@/lib/images/process";
 import type { ImageDescriptor, ImageKind } from "@/lib/images/shared";
 import { expireMenu } from "@/lib/menu/expire";
@@ -100,5 +101,89 @@ export async function removePhotoAction(restaurantId: string, target: PhotoTarge
   if (updateError) return { ok: false, error: t("photos.errors.failed") };
   expireMenu(restaurantId);
   refresh();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Auto-fix (Pro): makes an improved copy, shows it next to the original, and
+// only replaces the photo when the owner says so.
+// ---------------------------------------------------------------------------
+
+type EnhanceResult = { ok: true; before: ImageDescriptor; after: ImageDescriptor } | { ok: false; error: string };
+
+function imageKindOf(target: PhotoTarget): ImageKind {
+  return target.kind === "item" ? "item" : target.kind;
+}
+
+/** Only images this restaurant's photo actions could have stored. */
+function ownImage(restaurantId: string, target: PhotoTarget, image: ImageDescriptor): boolean {
+  return (
+    new RegExp(`^${restaurantId}/${imageKindOf(target)}/[0-9a-f-]{36}$`).test(image.path) &&
+    Array.isArray(image.widths) &&
+    image.widths.every((w) => Number.isInteger(w) && w > 0 && w <= 4000)
+  );
+}
+
+async function currentPhoto(restaurantId: string, target: PhotoTarget): Promise<ImageDescriptor | null> {
+  const supabase = await createClient();
+  if (target.kind === "item") {
+    const { data } = await supabase.from("items").select("photo").eq("id", target.itemId).eq("restaurant_id", restaurantId).maybeSingle();
+    return (data?.photo as unknown as ImageDescriptor | null) ?? null;
+  }
+  const { data } = await supabase.from("restaurants").select("logo, cover").eq("id", restaurantId).maybeSingle();
+  return ((target.kind === "logo" ? data?.logo : data?.cover) as unknown as ImageDescriptor | null) ?? null;
+}
+
+export async function enhancePhotoAction(restaurantId: string, target: PhotoTarget): Promise<EnhanceResult> {
+  const { user, error } = await allowed(restaurantId, target);
+  if (error) return { ok: false, error };
+  const ctx = await getDashboardContext(restaurantId);
+  if (!planHas(ctx.plan, "photo_enhance")) return { ok: false, error: t("editor.errors.notAllowed") };
+  if (!(await rateLimit(`enhance:${user.id}`, 30, 3600))) return { ok: false, error: t("photos.errors.tooMany") };
+
+  const before = await currentPhoto(restaurantId, target);
+  if (!before) return { ok: false, error: t("photos.enhanceFailed") };
+  const admin = createAdminClient();
+  try {
+    const largest = Math.max(...before.widths);
+    const { data: file, error: downloadError } = await admin.storage.from("images").download(`${before.path}-${largest}.webp`);
+    if (downloadError || !file) throw new Error(downloadError?.message ?? "missing image");
+    const improved = await photoEnhancer().enhance(Buffer.from(await file.arrayBuffer()));
+    const after = await storeImage(admin, restaurantId, imageKindOf(target), improved);
+    return { ok: true, before, after };
+  } catch (e) {
+    console.error("[photos] auto-fix failed", { message: (e as Error).message });
+    return { ok: false, error: t("photos.enhanceFailed") };
+  }
+}
+
+export async function applyEnhancedPhotoAction(restaurantId: string, target: PhotoTarget, after: ImageDescriptor): Promise<AttachResult> {
+  const { error } = await allowed(restaurantId, target);
+  if (error) return { ok: false, error };
+  if (!ownImage(restaurantId, target, after)) return { ok: false, error: t("photos.errors.failed") };
+  const before = await currentPhoto(restaurantId, target);
+  const value = after as unknown as Json;
+  const supabase = await createClient();
+  const { error: updateError } =
+    target.kind === "item"
+      ? await supabase.from("items").update({ photo: value }).eq("id", target.itemId).eq("restaurant_id", restaurantId)
+      : await supabase.from("restaurants").update(target.kind === "logo" ? { logo: value } : { cover: value }).eq("id", restaurantId);
+  if (updateError) return { ok: false, error: t("photos.errors.failed") };
+  // The original's files are no longer used by anything.
+  if (before && ownImage(restaurantId, target, before) && before.path !== after.path) {
+    await createAdminClient().storage.from("images").remove(before.widths.map((w) => `${before.path}-${w}.webp`));
+  }
+  expireMenu(restaurantId);
+  refresh();
+  return { ok: true, photo: after };
+}
+
+export async function discardEnhancedPhotoAction(restaurantId: string, target: PhotoTarget, after: ImageDescriptor): Promise<{ ok: boolean }> {
+  const { error } = await allowed(restaurantId, target);
+  if (error || !ownImage(restaurantId, target, after)) return { ok: false };
+  const current = await currentPhoto(restaurantId, target);
+  // Never delete the photo the menu is using.
+  if (current?.path === after.path) return { ok: false };
+  await createAdminClient().storage.from("images").remove(after.widths.map((w) => `${after.path}-${w}.webp`));
   return { ok: true };
 }

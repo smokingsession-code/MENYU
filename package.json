@@ -18,7 +18,8 @@
     "plans:sql": "tsx scripts/plans-sql.ts",
     "admin:add": "tsx --conditions=react-server --env-file=.env.local scripts/add-admin.ts",
     "i18n:sync": "tsx scripts/sync-lg.ts",
-    "seed:demo": "tsx --conditions=react-server --env-file=.env.local scripts/seed-demo.ts"
+    "seed:demo": "tsx --conditions=react-server --env-file=.env.local scripts/seed-demo.ts",
+    "i18n:status": "tsx scripts/lg-status.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",

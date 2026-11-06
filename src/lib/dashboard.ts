@@ -1,11 +1,13 @@
 import "server-only";
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { PLANS, planHas, type PlanCode } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { effectivePlan } from "@/lib/billing/plan";
 import type { OpeningHours } from "@/lib/hours";
 import type { ImageDescriptor } from "@/lib/images/shared";
+import { branchCookie } from "@/lib/branch-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 export interface DashboardBranch {
@@ -36,6 +38,7 @@ export interface DashboardContext {
   role: "owner" | "staff" | "admin";
   name: string;
   description: string | null;
+  descriptionLg: string | null;
   brandColor: string;
   logo: ImageDescriptor | null;
   cover: ImageDescriptor | null;
@@ -74,7 +77,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, description, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
+      "id, name, description, description_lg, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
     )
     .eq("id", restaurantId)
     .is("deleted_at", null)
@@ -108,9 +111,11 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
     }));
   if (branches.length === 0) notFound();
 
-  // Staff limited to one branch only ever see that branch.
+  // Staff limited to one branch only ever see that branch. Others see the
+  // branch they last chose (a cookie), or the main one.
   const visible = staffBranch ? branches.filter((b) => b.id === staffBranch) : branches;
-  const branch = visible.find((b) => b.id === branchId) ?? visible[0];
+  const chosen = branchId ?? (await cookies()).get(branchCookie(restaurantId))?.value;
+  const branch = visible.find((b) => b.id === chosen) ?? visible[0];
 
   // Staff cannot read the subscription (row security), so fall back to the
   // public plan to decide what they see.
@@ -129,6 +134,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
     role,
     name: r.name,
     description: r.description,
+    descriptionLg: r.description_lg,
     brandColor: r.brand_color,
     logo: (r.logo as unknown as ImageDescriptor | null) ?? null,
     cover: (r.cover as unknown as ImageDescriptor | null) ?? null,
