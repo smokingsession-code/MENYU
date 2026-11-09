@@ -3,16 +3,32 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type enMessages from "../../../messages/en.json";
 import { readableBrand, textOn, tint } from "@/lib/color";
+import { applyDealCss, dealIsOn, dealPrice, dealsByItem, dealsScript } from "@/lib/deals";
 import { DAY_KEYS, formatClock, openStatus, type OpenStatus } from "@/lib/hours";
 import { imageSrcSet, imageUrl, pickWidth } from "@/lib/images/shared";
 import { formatUGX } from "@/lib/money";
-import { buildTableMessage, cartCount, cartTotal, lineKey, type CartLine, type OrderType } from "@/lib/order";
+import { buildTableMessage, cartCount, cartTotal, lineKey, orderTypesFor, type CartLine } from "@/lib/order";
 import { matchesQuery } from "@/lib/text";
 import { waLink } from "@/lib/whatsapp";
-import { startingPrice, type PublicItem, type PublicMenu } from "@/lib/menu/types";
+import { startingPrice, type PublicDeal, type PublicItem, type PublicMenu } from "@/lib/menu/types";
+import { Sheet } from "@/components/ui/sheet";
 import { CartSheet } from "./cart-sheet";
-import { FeedbackSheet, PaySheet, SpecialsBanner } from "./extras";
-import { fill, refreshMenu, shouldAutoRefresh, track, useCart, useLanguage, useLiveMenu, useServiceWorker, useTableCode, type LiveState } from "./hooks";
+import { DealsBanner, FeedbackSheet, PaySheet, SpecialsBanner } from "./extras";
+import {
+  fill,
+  refreshMenu,
+  shouldAutoRefresh,
+  track,
+  useCart,
+  useKitchenOrder,
+  useLanguage,
+  useLiveMenu,
+  useServiceWorker,
+  useTableCode,
+  type LiveState,
+  type LoyaltyState,
+} from "./hooks";
+import { KitchenPill, KitchenView, LoyaltyCard } from "./ordering";
 import { BagIcon, BellIcon, ChatIcon, CloseIcon, PhoneIcon, PinIcon, PlusIcon, ReceiptIcon, SearchIcon, WalletIcon } from "./icons";
 import { ItemSheet } from "./item-sheet";
 import { TagList } from "./tags";
@@ -56,9 +72,34 @@ export function MenuApp({
   const s = useMemo(() => (lang === "lg" ? merge(strings, lgStrings) : strings), [lang, strings, lgStrings]);
   const tr: Translate = (en, lg) => (lang === "lg" && lg?.trim() ? lg : en);
 
-  const canOrder = features.whatsapp_ordering && Boolean(branch.whatsapp);
+  // The branch's mode already falls back when WhatsApp or the kitchen
+  // screen is not available, so any paid menu can take orders.
+  const canOrder = features.whatsapp_ordering;
+  const mode = branch.order_mode ?? (branch.whatsapp ? "whatsapp" : "waiter");
   const { code: tableCode, ready } = useTableCode();
   const tableLabel = tableCode ? (menu.tables[tableCode] ?? null) : null;
+
+  // "Sell it today" deals. Prices for both cases are in the page; a style
+  // sheet shows the right one (see lib/deals), and adding to the order
+  // checks the clock at that moment.
+  const deals = useMemo(() => (features.specials ? (menu.deals ?? []) : []), [features.specials, menu.deals]);
+  const dealMap = useMemo(() => dealsByItem(deals), [deals]);
+  useEffect(() => {
+    if (deals.length === 0) return;
+    const update = () => applyDealCss(deals, Date.now());
+    update();
+    const id = window.setInterval(update, 30_000);
+    return () => window.clearInterval(id);
+  }, [deals]);
+  const liveDeal = (itemId: string): PublicDeal | null => {
+    const deal = dealMap.get(itemId);
+    return deal && dealIsOn(deal, Date.now()) ? deal : null;
+  };
+
+  const loyalty = features.loyalty && features.whatsapp_ordering ? (menu.loyalty ?? null) : null;
+  const [card, setCard] = useState<LoyaltyState | null>(null);
+  const [kitchenOrder, setKitchenOrder] = useKitchenOrder(slug);
+  const [kitchenOpen, setKitchenOpen] = useState(false);
 
   const cart = useCart(slug);
   const [soldOut, setSoldOut] = useState<Set<string>>(
@@ -68,12 +109,19 @@ export function MenuApp({
   // Sold-out changes apply in place. Other changes need the new page: fetch
   // it straight away if the diner has not started an order, else offer it.
   const busy = useRef(false);
-  useLiveMenu(slug, tableCode, ready, (live: LiveState) => {
-    setSoldOut(new Set(live.sold_out));
-    if (live.version <= menu.version) return;
-    if (!busy.current && shouldAutoRefresh(slug, live.version)) refreshMenu();
-    else setStale(true);
-  });
+  useLiveMenu(
+    slug,
+    tableCode,
+    ready,
+    (live: LiveState) => {
+      setSoldOut(new Set(live.sold_out));
+      if (live.loyalty) setCard(live.loyalty);
+      if (live.version <= menu.version) return;
+      if (!busy.current && shouldAutoRefresh(slug, live.version)) refreshMenu();
+      else setStale(true);
+    },
+    Boolean(loyalty),
+  );
   useServiceWorker();
 
   const [status, setStatus] = useState<OpenStatus | null>(null);
@@ -93,6 +141,7 @@ export function MenuApp({
   const [demoNote, setDemoNote] = useState(false);
 
   const allItems = useMemo(() => menu.categories.flatMap((c) => c.items), [menu.categories]);
+  const itemsById = useMemo(() => new Map(allItems.map((i) => [i.id, i])), [allItems]);
   const openItem = allItems.find((i) => i.id === openItemId) ?? null;
 
   const sections = useMemo(() => {
@@ -108,12 +157,7 @@ export function MenuApp({
   }, [menu.categories, query]);
   const resultCount = sections.reduce((n, c) => n + c.items.length, 0);
 
-  const orderTypes: OrderType[] = [
-    ...(branch.accepts_dine_in ? (["dine_in"] as const) : []),
-    ...(branch.accepts_takeaway ? (["takeaway"] as const) : []),
-    ...(branch.accepts_delivery ? (["delivery"] as const) : []),
-  ];
-  if (orderTypes.length === 0) orderTypes.push("dine_in");
+  const orderTypes = useMemo(() => orderTypesFor(branch), [branch]);
 
   const brand = restaurant.brand_color || "#1E5B3A";
   const style = {
@@ -129,13 +173,15 @@ export function MenuApp({
   }
 
   function quickAdd(item: PublicItem) {
+    const deal = liveDeal(item.id);
     const line: CartLine = {
-      key: lineKey(item.id, undefined, [], undefined),
+      key: lineKey(item.id, undefined, [], undefined) + (deal ? `|-${deal.percent}` : ""),
       itemId: item.id,
       name: tr(item.name, item.name_lg),
       addons: [],
-      unitPrice: item.price ?? 0,
+      unitPrice: deal ? dealPrice(item.price ?? 0, deal.percent) : (item.price ?? 0),
       qty: 1,
+      ...(deal ? { percentOff: deal.percent } : {}),
     };
     cart.add(line);
     setAnnounce(fill(s.addNamed, { name: line.name }) + " ✓");
@@ -149,8 +195,8 @@ export function MenuApp({
   const count = cartCount(cart.lines);
   const total = cartTotal(cart.lines);
   useEffect(() => {
-    busy.current = count > 0 || openItemId !== null || cartOpen || payOpen || feedbackOpen;
-  }, [count, openItemId, cartOpen, payOpen, feedbackOpen]);
+    busy.current = count > 0 || openItemId !== null || cartOpen || payOpen || feedbackOpen || kitchenOpen;
+  }, [count, openItemId, cartOpen, payOpen, feedbackOpen, kitchenOpen]);
   const hello = fill(s.helloMessage, { restaurant: restaurant.name });
   // "Call the waiter" and "Bring the bill" need to know the table.
   const waiterPossible = features.waiter_call && Boolean(branch.whatsapp) && Object.keys(menu.tables).length > 0;
@@ -161,8 +207,14 @@ export function MenuApp({
     onClick: () => track(slug, type, { table: tableCode }),
   });
 
+  const reward = loyalty ? tr(loyalty.reward, loyalty.reward_lg) : "";
+  const loyaltyCard = loyalty ? <LoyaltyCard config={loyalty} card={card} reward={reward} slug={slug} onCard={setCard} s={s} /> : null;
+  const showPill = Boolean(kitchenOrder && kitchenOrder.status !== "done" && !cartOpen && !kitchenOpen);
+
   return (
     <div style={style} className="mx-auto flex min-h-screen w-full max-w-2xl flex-col bg-paper">
+      {/* Before anything is drawn: which deals are still on (see lib/deals). */}
+      {deals.length ? <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: dealsScript(deals) }} /> : null}
       {restaurant.is_demo ? (
         <p className="bg-ink px-4 py-2 text-center text-sm font-bold text-white">{s.demoBanner}</p>
       ) : null}
@@ -304,6 +356,19 @@ export function MenuApp({
         </div>
       </header>
 
+      {deals.length ? (
+        <DealsBanner
+          deals={deals}
+          items={itemsById}
+          soldOut={soldOut}
+          canOrder={canOrder}
+          onAdd={quickAdd}
+          onOpen={openDetails}
+          s={s}
+          tr={tr}
+        />
+      ) : null}
+
       {features.specials && menu.specials.length ? (
         <SpecialsBanner specials={menu.specials} canOrder={canOrder} onAdd={addFromSheet} s={s} tr={tr} />
       ) : null}
@@ -333,6 +398,7 @@ export function MenuApp({
                 <ItemCard
                   key={item.id}
                   item={item}
+                  deal={dealMap.get(item.id)}
                   soldOut={soldOut.has(item.id)}
                   canOrder={canOrder}
                   onOpen={() => openDetails(item)}
@@ -412,12 +478,42 @@ export function MenuApp({
         </div>
       ) : null}
 
-      {momo ? <PaySheet open={payOpen} onClose={() => setPayOpen(false)} momo={momo} total={total} s={s} /> : null}
+      {showPill && kitchenOrder ? (
+        <KitchenPill order={kitchenOrder} raised={canOrder && count > 0} onOpen={() => setKitchenOpen(true)} s={s} />
+      ) : null}
+      {kitchenOrder ? (
+        <Sheet
+          open={kitchenOpen}
+          onClose={() => {
+            setKitchenOpen(false);
+            // A cancelled order has been seen: forget it.
+            if (kitchenOrder.status === "cancelled") setKitchenOrder(null);
+          }}
+          title={s.kitchenSent}
+          closeLabel={s.close}
+          full
+          footer={
+            <button
+              type="button"
+              onClick={() => setKitchenOpen(false)}
+              className="min-h-14 w-full rounded-2xl text-lg font-extrabold"
+              style={{ background: "var(--brand)", color: "var(--on-brand)" }}
+            >
+              {s.backToMenu}
+            </button>
+          }
+        >
+          <KitchenView order={kitchenOrder} s={s} loyalty={loyaltyCard} />
+        </Sheet>
+      ) : null}
+
+      {momo ? <PaySheet open={payOpen} onClose={() => setPayOpen(false)} momo={momo} acceptsCash={branch.accepts_cash ?? true} total={total} s={s} /> : null}
       {features.feedback ? (
         <FeedbackSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} slug={slug} table={tableCode} s={s} />
       ) : null}
       <ItemSheet
         item={openItem}
+        deal={openItem ? dealMap.get(openItem.id) : undefined}
         open={openItemId !== null}
         onClose={() => setOpenItemId(null)}
         onAdd={addFromSheet}
@@ -431,19 +527,27 @@ export function MenuApp({
           open={cartOpen}
           onClose={() => setCartOpen(false)}
           lines={cart.lines}
+          orderRef={cart.ref}
           setQty={cart.setQty}
           setNote={cart.setNote}
-          clear={() => {
-            cart.clear();
-            setCartOpen(false);
-          }}
+          clear={cart.clear}
           orderTypes={orderTypes}
+          mode={mode}
           tableFromQr={tableLabel}
+          tableCode={tableLabel ? tableCode : null}
           whatsapp={branch.whatsapp}
           phone={branch.phone}
           deliveryNote={branch.delivery_note}
           slug={slug}
           isDemo={restaurant.is_demo}
+          momo={momo}
+          acceptsCash={branch.accepts_cash ?? true}
+          loyalty={loyalty}
+          loyaltyReward={reward}
+          card={card}
+          onCard={setCard}
+          kitchenOrder={kitchenOrder}
+          onKitchenOrder={setKitchenOrder}
           s={s}
         />
       ) : null}
@@ -613,6 +717,7 @@ function StickyNav({
 
 function ItemCard({
   item,
+  deal,
   soldOut,
   canOrder,
   onOpen,
@@ -621,6 +726,8 @@ function ItemCard({
   tr,
 }: {
   item: PublicItem;
+  /** Shown only while it is on, by the deals style sheet. */
+  deal: PublicDeal | undefined;
   soldOut: boolean;
   canOrder: boolean;
   onOpen: () => void;
@@ -649,7 +756,20 @@ function ItemCard({
             </span>
           ) : null}
           <span className="mt-1.5 flex flex-wrap items-center gap-2">
-            {price !== null ? (
+            {price !== null && deal ? (
+              <>
+                <span className="dl-off text-base font-extrabold" data-dl={item.id}>
+                  {from ? fill(s.fromPrice, { price: formatUGX(price) }) : formatUGX(price)}
+                </span>
+                <span className="dl-on" data-dl={item.id}>
+                  <s className="text-sm text-muted">{formatUGX(price)}</s>{" "}
+                  <span className="text-base font-extrabold">
+                    {from ? fill(s.fromPrice, { price: formatUGX(dealPrice(price, deal.percent)) }) : formatUGX(dealPrice(price, deal.percent))}
+                  </span>{" "}
+                  <span className="rounded-full bg-accent px-1.5 py-0.5 text-xs font-extrabold text-ink">{fill(s.dealOff, { percent: deal.percent })}</span>
+                </span>
+              </>
+            ) : price !== null ? (
               <span className="text-base font-extrabold">{from ? fill(s.fromPrice, { price: formatUGX(price) }) : formatUGX(price)}</span>
             ) : null}
             {soldOut ? <span className="rounded-full bg-danger-soft px-2 py-0.5 text-sm font-extrabold text-danger">{s.soldOut}</span> : null}

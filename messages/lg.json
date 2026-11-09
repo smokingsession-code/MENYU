@@ -523,7 +523,12 @@
       "total": "",
       "name": "",
       "address": "",
-      "note": ""
+      "note": "",
+      "payment": "",
+      "payments": {
+        "momo": "",
+        "cash": ""
+      }
     },
     "specialsTitle": "",
     "specialUntil": "",
@@ -553,7 +558,65 @@
     "feedbackThanks": "",
     "feedbackPick": "",
     "feedbackTooMany": "",
-    "feedbackFailed": ""
+    "feedbackFailed": "",
+    "dealsTitle": "",
+    "dealOff": "",
+    "dealUntil": "",
+    "dealWas": "",
+    "dealNow": "",
+    "payHow": "",
+    "payCash": "",
+    "payCashBody": "",
+    "payMomoShort": "",
+    "payWith": "",
+    "payOptions": "",
+    "payOr": "",
+    "showWaiter": "",
+    "sendKitchen": "",
+    "sendingOrder": "",
+    "waiterTitle": "",
+    "waiterTable": "",
+    "waiterNoTable": "",
+    "backToMenu": "",
+    "orderNumber": "",
+    "kitchenSent": "",
+    "kitchenSteps": {
+      "new": "",
+      "cooking": "",
+      "ready": ""
+    },
+    "kitchenStatus": {
+      "new": "",
+      "cooking": "",
+      "ready": "",
+      "done": "",
+      "cancelled": ""
+    },
+    "kitchenReady": "",
+    "kitchenDone": "",
+    "kitchenCancelled": "",
+    "kitchenWatch": "",
+    "kitchenPill": "",
+    "orderFailed": "",
+    "orderSoldOut": "",
+    "orderChanged": "",
+    "orderTooMany": "",
+    "loyaltyTitle": "",
+    "loyaltyStamps": "",
+    "loyaltyMore": "",
+    "loyaltyHow": "",
+    "loyaltyMin": "",
+    "loyaltyEarned": "",
+    "loyaltyToday": "",
+    "loyaltyReady": "",
+    "loyaltyUse": "",
+    "loyaltyConfirm": "",
+    "loyaltyYes": "",
+    "loyaltyNo": "",
+    "loyaltyUsed": "",
+    "loyaltyUsedAt": "",
+    "loyaltyKept": "",
+    "loyaltyFailed": ""
   },
   "print": {
     "scanForMenu": "",
@@ -588,7 +651,8 @@
     "profile": "",
     "adminView": "",
     "feedback": "",
-    "staff": ""
+    "staff": "",
+    "kitchen": ""
   },
   "editor": {
     "title": "",
@@ -920,7 +984,19 @@
     "staff": "",
     "staffHint": "",
     "branches": "",
-    "branchesHint": ""
+    "branchesHint": "",
+    "todayTitle": "",
+    "todayOrders": "",
+    "todayValue": "",
+    "todayHint": "",
+    "sellToday": "",
+    "sellTodayHint": "",
+    "dealsLive": "",
+    "kitchen": "",
+    "kitchenHint": "",
+    "kitchenNew": "",
+    "ordering": "",
+    "orderingHint": ""
   },
   "import": {
     "title": "",
@@ -1123,7 +1199,8 @@
         "whatsapp": "",
         "dashboard": "",
         "listing": "",
-        "footer": ""
+        "footer": "",
+        "waiter": ""
       },
       "pro": {
         "everything": "",
@@ -1134,7 +1211,10 @@
         "photos": "",
         "staff": "",
         "branches": "",
-        "featured": ""
+        "featured": "",
+        "sellToday": "",
+        "loyalty": "",
+        "kitchen": ""
       }
     },
     "reminder": {
@@ -1253,7 +1333,16 @@
     "views": "",
     "count": "",
     "ordersCount": "",
-    "peak": ""
+    "peak": "",
+    "salesTitle": "",
+    "salesHint": "",
+    "salesOrders": "",
+    "salesValue": "",
+    "salesAverage": "",
+    "salesPerDay": "",
+    "salesTop": "",
+    "salesNone": "",
+    "amount": ""
   },
   "directory": {
     "title": "",
@@ -1282,7 +1371,13 @@
     "open": "",
     "closed": "",
     "matches": "",
-    "adminPreview": ""
+    "adminPreview": "",
+    "deal": "",
+    "dealPrice": "",
+    "dealUntil": "",
+    "topTitle": "",
+    "topTitleAll": "",
+    "topHint": ""
   },
   "staff": {
     "title": "",
@@ -1336,5 +1431,114 @@
       "whatsapp": "",
       "failed": ""
     }
+  },
+  "ordering": {
+    "title": "",
+    "intro": "",
+    "modeTitle": "",
+    "modes": {
+      "waiter": "",
+      "whatsapp": "",
+      "kitchen": ""
+    },
+    "modeHints": {
+      "waiter": "",
+      "whatsapp": "",
+      "kitchen": ""
+    },
+    "needsWhatsapp": "",
+    "kitchenPro": "",
+    "deliveryNote": "",
+    "payTitle": "",
+    "cash": "",
+    "cashHint": "",
+    "momoCodes": "",
+    "momoNone": "",
+    "momoEdit": "",
+    "loyaltyTitle": "",
+    "loyaltyIntro": "",
+    "loyaltyOn": "",
+    "loyaltyVisits": "",
+    "loyaltyReward": "",
+    "loyaltyRewardHint": "",
+    "loyaltyRewardPlaceholder": "",
+    "loyaltyRewardLg": "",
+    "loyaltyMin": "",
+    "loyaltyMinHint": "",
+    "loyaltyPro": "",
+    "loyaltyStats": "",
+    "save": "",
+    "saved": "",
+    "errors": {
+      "reward": "",
+      "visits": "",
+      "min": "",
+      "mode": "",
+      "failed": ""
+    }
+  },
+  "deals": {
+    "title": "",
+    "intro": "",
+    "dish": "",
+    "dishPlaceholder": "",
+    "search": "",
+    "discount": "",
+    "percent": "",
+    "until": "",
+    "presets": {
+      "h1": "",
+      "h3": "",
+      "close": ""
+    },
+    "untilTime": "",
+    "note": "",
+    "notePlaceholder": "",
+    "noteLg": "",
+    "start": "",
+    "starting": "",
+    "started": "",
+    "live": "",
+    "none": "",
+    "endsAt": "",
+    "end": "",
+    "ending": "",
+    "ended": "",
+    "proOnly": "",
+    "errors": {
+      "dish": "",
+      "percent": "",
+      "time": "",
+      "failed": ""
+    }
+  },
+  "kitchen": {
+    "title": "",
+    "intro": "",
+    "columns": {
+      "new": "",
+      "cooking": "",
+      "ready": ""
+    },
+    "empty": "",
+    "start": "",
+    "ready": "",
+    "done": "",
+    "cancel": "",
+    "cancelConfirm": "",
+    "cancelYes": "",
+    "cancelNo": "",
+    "back": "",
+    "order": "",
+    "table": "",
+    "minutes": "",
+    "justNow": "",
+    "paying": "",
+    "doneToday": "",
+    "offMode": "",
+    "proOnly": "",
+    "offline": "",
+    "sound": "",
+    "failed": ""
   }
 }

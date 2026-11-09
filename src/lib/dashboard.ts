@@ -29,6 +29,9 @@ export interface DashboardBranch {
   acceptsTakeaway: boolean;
   acceptsDelivery: boolean;
   deliveryNote: string | null;
+  /** waiter | whatsapp | kitchen, as saved (the menu may fall back, see private.order_mode). */
+  orderMode: "waiter" | "whatsapp" | "kitchen";
+  acceptsCash: boolean;
   menuId: string;
   isMain: boolean;
 }
@@ -77,7 +80,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, description, description_lg, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, menu_id, is_main, sort_order, deleted_at)",
+      "id, name, description, description_lg, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, order_mode, accepts_cash, menu_id, is_main, sort_order, deleted_at)",
     )
     .eq("id", restaurantId)
     .is("deleted_at", null)
@@ -106,6 +109,8 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
       acceptsTakeaway: b.accepts_takeaway,
       acceptsDelivery: b.accepts_delivery,
       deliveryNote: b.delivery_note,
+      orderMode: (["waiter", "whatsapp", "kitchen"].includes(b.order_mode) ? b.order_mode : "whatsapp") as DashboardBranch["orderMode"],
+      acceptsCash: b.accepts_cash,
       menuId: b.menu_id,
       isMain: b.is_main,
     }));

@@ -6,7 +6,11 @@ import {
   cartCount,
   cartTotal,
   lineKey,
+  orderAction,
+  orderTypesFor,
+  randomRef,
   setQty,
+  toOrderLines,
   unitPrice,
   type CartLine,
   type OrderWords,
@@ -111,5 +115,47 @@ describe("cart maths", () => {
   it("builds waiter and bill messages with the table", () => {
     expect(buildTableMessage("Table {table}: please bring the bill.", "Garden 1", "?")).toBe("Table Garden 1: please bring the bill.");
     expect(buildTableMessage("Table {table}: please come.", undefined, "(no table)")).toBe("Table (no table): please come.");
+  });
+});
+
+describe("ordering modes and payment", () => {
+  it("adds the deal and how the diner will pay to the message", () => {
+    const message = buildOrderMessage(
+      [line({ name: "Tilapia", unitPrice: 17_500, qty: 1, percentOff: 30 })],
+      { type: "dine_in", table: "5", payment: "cash" },
+      { ...words, payment: "Payment", payments: { momo: "Mobile Money", cash: "Cash" } },
+    );
+    expect(message).toBe("New order - Table 5 (dine-in)\n1 x Tilapia (-30%) - UGX 17,500\nTotal: UGX 17,500\nPayment: Cash");
+  });
+
+  it("sends delivery on WhatsApp and everything else the branch's way", () => {
+    expect(orderAction("waiter", "dine_in")).toBe("waiter");
+    expect(orderAction("kitchen", "takeaway")).toBe("kitchen");
+    expect(orderAction("kitchen", "delivery")).toBe("whatsapp");
+    expect(orderAction("whatsapp", "dine_in")).toBe("whatsapp");
+  });
+
+  it("only offers delivery with a WhatsApp number", () => {
+    const branch = { accepts_dine_in: true, accepts_takeaway: false, accepts_delivery: true, whatsapp: null };
+    expect(orderTypesFor(branch)).toEqual(["dine_in"]);
+    expect(orderTypesFor({ ...branch, whatsapp: "256772000111" })).toEqual(["dine_in", "delivery"]);
+    expect(orderTypesFor({ ...branch, accepts_dine_in: false, accepts_delivery: false })).toEqual(["dine_in"]);
+  });
+
+  it("sends the order API ids and quantities, never prices", () => {
+    const lines = toOrderLines([
+      { key: "a", itemId: "rolex", name: "Rolex", addons: [{ id: "avo", name: "Avocado", price: 1000 }], unitPrice: 6000, qty: 2, note: " no onions " },
+      { key: "b", itemId: "special:x", name: "Lunch deal", addons: [], unitPrice: 9000, qty: 1, sizeId: undefined },
+    ]);
+    expect(lines).toEqual([
+      { i: "rolex", a: ["avo"], q: 2, n: "no onions" },
+      { i: "special:x", q: 1 },
+    ]);
+  });
+
+  it("makes random refs the API accepts", () => {
+    const ref = randomRef();
+    expect(ref).toMatch(/^[A-Za-z0-9]{22}$/);
+    expect(randomRef()).not.toBe(ref);
   });
 });

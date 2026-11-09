@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { copyText } from "@/components/copy-button";
 import { Sheet } from "@/components/ui/sheet";
+import { dealPrice } from "@/lib/deals";
 import { formatClock, parseTime } from "@/lib/hours";
-import type { PublicMenu, PublicSpecial } from "@/lib/menu/types";
+import { imageSrcSet, imageUrl, pickWidth } from "@/lib/images/shared";
+import { startingPrice, type PublicDeal, type PublicItem, type PublicMenu, type PublicSpecial } from "@/lib/menu/types";
 import { formatUGX } from "@/lib/money";
 import type { CartLine } from "@/lib/order";
 import { specialOnAt, specialsScript } from "@/lib/specials";
@@ -12,6 +14,106 @@ import { fill } from "./hooks";
 import type { DinerStrings, Translate } from "./menu-app";
 
 const SPECIALS_ID = "menu-specials";
+
+/** The Kampala clock time of an ISO moment, e.g. "9pm". Same on server and phone. */
+export function kampalaClock(iso: string): string {
+  const local = new Date(Date.parse(iso) + 3 * 3_600_000);
+  return formatClock(local.getUTCHours() * 60 + local.getUTCMinutes());
+}
+
+/**
+ * "Today only": the restaurant's Sell it today deals. Every deal is in the
+ * page; the deals style sheet (see lib/deals) shows the ones still on, so
+ * the list never jumps and disappears by itself at the end time.
+ */
+export function DealsBanner({
+  deals,
+  items,
+  soldOut,
+  canOrder,
+  onAdd,
+  onOpen,
+  s,
+  tr,
+}: {
+  deals: PublicDeal[];
+  items: Map<string, PublicItem>;
+  soldOut: Set<string>;
+  canOrder: boolean;
+  onAdd: (item: PublicItem) => void;
+  onOpen: (item: PublicItem) => void;
+  s: DinerStrings;
+  tr: Translate;
+}) {
+  const shown = deals.filter((d, i) => items.has(d.item_id) && deals.findIndex((x) => x.item_id === d.item_id) === i);
+  if (shown.length === 0) return null;
+  return (
+    <section id="menu-deals" aria-labelledby="deals-title" className="px-4 pt-4">
+      <h2 id="deals-title" className="mb-2 text-xl font-extrabold">
+        {s.dealsTitle}
+      </h2>
+      <ul className="space-y-2">
+        {shown.map((deal) => {
+          const item = items.get(deal.item_id)!;
+          const name = tr(item.name, item.name_lg);
+          const note = tr(deal.note ?? "", deal.note_lg);
+          const { price, from } = startingPrice(item);
+          const simple = item.options.length === 0 && item.price !== null;
+          const out = soldOut.has(item.id);
+          return (
+            <li key={deal.id} className="dl-card" data-dl={deal.item_id}>
+              <div className="flex gap-3 rounded-2xl border-2 p-3" style={{ borderColor: "var(--brand)", background: "var(--brand-soft)" }}>
+                {item.photo ? (
+                  <img
+                    src={imageUrl(item.photo, pickWidth(item.photo, 80))}
+                    srcSet={imageSrcSet(item.photo)}
+                    sizes="80px"
+                    width={80}
+                    height={80}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="size-20 shrink-0 rounded-xl object-cover"
+                    style={{ backgroundColor: item.photo.color }}
+                  />
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 text-lg leading-snug font-extrabold">{name}</p>
+                    <p className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-sm font-extrabold text-ink">{fill(s.dealOff, { percent: deal.percent })}</p>
+                  </div>
+                  {note ? <p className="text-base">{note}</p> : null}
+                  {price !== null ? (
+                    <p className="mt-0.5">
+                      <s className="text-sm text-muted">{formatUGX(price)}</s>{" "}
+                      <span className="text-lg font-extrabold">
+                        {from ? fill(s.fromPrice, { price: formatUGX(dealPrice(price, deal.percent)) }) : formatUGX(dealPrice(price, deal.percent))}
+                      </span>
+                    </p>
+                  ) : null}
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <p className="text-sm font-bold">{out ? s.soldOut : fill(s.dealUntil, { time: kampalaClock(deal.ends_at) })}</p>
+                    {canOrder && !out ? (
+                      <button
+                        type="button"
+                        onClick={() => (simple ? onAdd(item) : onOpen(item))}
+                        aria-label={fill(s.addNamed, { name })}
+                        className="min-h-11 shrink-0 rounded-xl px-5 font-extrabold"
+                        style={{ background: "var(--brand)", color: "var(--on-brand)" }}
+                      >
+                        + {s.add}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
 
 /**
  * Today's specials and happy hours. Every special is sent with the page and
@@ -122,17 +224,19 @@ function CopyLine({ value, label, copiedLabel }: { value: string; label: string;
   );
 }
 
-/** The restaurant's MTN and Airtel merchant codes, with the order total. */
+/** The restaurant's MTN and Airtel merchant codes, with the order total, and cash. */
 export function PaySheet({
   open,
   onClose,
   momo,
+  acceptsCash,
   total,
   s,
 }: {
   open: boolean;
   onClose: () => void;
   momo: NonNullable<PublicMenu["branch"]["momo"]>;
+  acceptsCash: boolean;
   total: number;
   s: DinerStrings;
 }) {
@@ -166,6 +270,12 @@ export function PaySheet({
             {name ? <p className="text-sm">{fill(s.accountName, { name })}</p> : null}
           </div>
         ))}
+        {acceptsCash ? (
+          <div className="space-y-1 rounded-2xl border-2 border-line p-3">
+            <p className="font-extrabold">{s.payCash}</p>
+            <p className="text-base">{s.payCashBody}</p>
+          </div>
+        ) : null}
       </div>
     </Sheet>
   );

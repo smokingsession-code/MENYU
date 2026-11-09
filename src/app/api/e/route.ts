@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { deviceHashOf } from "@/lib/diner-request";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -8,6 +9,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
  *
  * Rate limited per client inside record_event; over the limit the event is
  * dropped but the live state is still returned. Crawlers are not counted.
+ *
+ * A menu view from a restaurant with loyalty stamps also sends the phone's
+ * random loyalty id (did), and gets its stamp card back in the same reply.
  */
 const TYPES = new Set(["menu_view", "item_view", "whatsapp_order", "order_copy", "waiter_call", "bill_request", "momo_view"]);
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -20,7 +24,7 @@ export async function POST(request: Request) {
   const text = await request.text();
   if (text.length > MAX_BODY) return new Response(null, { status: 413 });
 
-  let body: { s?: unknown; t?: unknown; tb?: unknown; i?: unknown; sid?: unknown };
+  let body: { s?: unknown; t?: unknown; tb?: unknown; i?: unknown; sid?: unknown; did?: unknown };
   try {
     body = JSON.parse(text);
   } catch {
@@ -39,19 +43,25 @@ export async function POST(request: Request) {
   const ip = request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const rateKey = createHash("sha256").update(ip).digest("hex").slice(0, 16);
 
-  const { data, error } = await createAdminClient().rpc("record_event", {
-    p_slug: slug,
-    // Crawlers get the live state but are never counted.
-    p_type: BOT.test(ua) ? "ignored" : type,
-    p_table: table ?? undefined,
-    p_item: item ?? undefined,
-    p_session: session ?? undefined,
-    p_rate_key: rateKey,
-  });
+  const admin = createAdminClient();
+  const device = type === "menu_view" ? deviceHashOf(body.did) : null;
+  const [{ data, error }, loyalty] = await Promise.all([
+    admin.rpc("record_event", {
+      p_slug: slug,
+      // Crawlers get the live state but are never counted.
+      p_type: BOT.test(ua) ? "ignored" : type,
+      p_table: table ?? undefined,
+      p_item: item ?? undefined,
+      p_session: session ?? undefined,
+      p_rate_key: rateKey,
+    }),
+    device ? admin.rpc("loyalty_status", { p_slug: slug, p_device_hash: device }) : Promise.resolve(null),
+  ]);
   if (error) {
     console.error("[events] record_event failed", { message: error.message });
     return new Response(null, { status: 503 });
   }
   if (!data) return new Response(null, { status: 404 });
-  return Response.json(data, { headers: { "Cache-Control": "no-store" } });
+  const card = loyalty && !loyalty.error ? loyalty.data : null;
+  return Response.json(card ? { ...(data as object), loyalty: card } : data, { headers: { "Cache-Control": "no-store" } });
 }

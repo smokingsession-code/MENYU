@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 export interface NavItem {
   href: string;
   label: string;
-  icon: "home" | "menu" | "tables" | "profile" | "feedback";
+  icon: "home" | "menu" | "tables" | "profile" | "feedback" | "kitchen";
 }
 
 const ICONS: Record<NavItem["icon"], string> = {
@@ -15,6 +15,7 @@ const ICONS: Record<NavItem["icon"], string> = {
   tables: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2M18 14h2M14 18h6",
   profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0",
   feedback: "m12 3 2.6 5.6 6 .7-4.5 4.1 1.3 6L12 16.3 6.6 19.4l1.3-6L3.4 9.3l6-.7z",
+  kitchen: "M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM2 10h2M20 10h2M9 6c0-1 1-1 1-2M14 6c0-1 1-1 1-2",
 };
 
 /** Bottom tab bar: big targets in thumb reach on a phone. */

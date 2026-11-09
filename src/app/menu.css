@@ -14,3 +14,12 @@
 @theme {
   --font-sans: ui-rounded, "Segoe UI", Roboto, system-ui, sans-serif;
 }
+
+/* "Sell it today" deals stay hidden until the deals style sheet shows the
+   ones that are still on (src/lib/deals.ts), so pages without JavaScript
+   just show normal prices. */
+.dl-on,
+.dl-card,
+#menu-deals {
+  display: none;
+}

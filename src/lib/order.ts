@@ -22,6 +22,8 @@ export interface CartLine {
   unitPrice: number;
   qty: number;
   note?: string;
+  /** A "Sell it today" discount already in unitPrice, shown as "(-30%)". */
+  percentOff?: number;
 }
 
 export const MAX_QTY = 99;
@@ -62,6 +64,8 @@ export function setQty(lines: readonly CartLine[], key: string, qty: number): Ca
 }
 
 export type OrderType = "dine_in" | "takeaway" | "delivery";
+export type PaymentChoice = "momo" | "cash";
+export type OrderMode = "waiter" | "whatsapp" | "kitchen";
 
 export interface OrderDetails {
   type: OrderType;
@@ -69,6 +73,7 @@ export interface OrderDetails {
   table?: string;
   name?: string;
   address?: string;
+  payment?: PaymentChoice | null;
 }
 
 /** Translated words used in the message (from the translation files). */
@@ -81,6 +86,9 @@ export interface OrderWords {
   name: string;
   address: string;
   note: string;
+  /** Optional so older callers keep working. */
+  payment?: string;
+  payments?: Record<PaymentChoice, string>;
 }
 
 function clean(text: string | undefined, max = 200): string {
@@ -105,6 +113,7 @@ export function buildOrderMessage(lines: readonly CartLine[], details: OrderDeta
     let label = `${line.qty} x ${clean(line.name, 120)}`;
     if (line.sizeName) label += ` (${clean(line.sizeName, 60)})`;
     if (line.addons.length) label += ` + ${line.addons.map((a) => clean(a.name, 60)).join(", ")}`;
+    if (line.percentOff) label += ` (-${line.percentOff}%)`;
     out.push(`${label} - ${formatUGX(lineTotal(line))}`);
     const note = clean(line.note);
     if (note) out.push(`  ${words.note}: ${note}`);
@@ -115,7 +124,58 @@ export function buildOrderMessage(lines: readonly CartLine[], details: OrderDeta
   if (name) out.push(`${words.name}: ${name}`);
   const address = clean(details.address, 300);
   if (details.type === "delivery" && address) out.push(`${words.address}: ${address}`);
+  if (details.payment && words.payment && words.payments) out.push(`${words.payment}: ${words.payments[details.payment]}`);
   return out.join("\n");
+}
+
+/**
+ * What the final button does: delivery orders always go on WhatsApp (there
+ * is no waiter or table); everything else follows the branch's mode.
+ */
+export function orderAction(mode: OrderMode, type: OrderType): OrderMode {
+  return type === "delivery" ? "whatsapp" : mode;
+}
+
+/** The order types a branch offers. Delivery needs WhatsApp. */
+export function orderTypesFor(branch: {
+  accepts_dine_in: boolean;
+  accepts_takeaway: boolean;
+  accepts_delivery: boolean;
+  whatsapp: string | null;
+}): OrderType[] {
+  const types: OrderType[] = [];
+  if (branch.accepts_dine_in) types.push("dine_in");
+  if (branch.accepts_takeaway) types.push("takeaway");
+  if (branch.accepts_delivery && branch.whatsapp) types.push("delivery");
+  if (types.length === 0) types.push("dine_in");
+  return types;
+}
+
+/** The cart as the order API takes it: ids only, never prices. */
+export interface OrderLineInput {
+  i: string;
+  s?: string;
+  a?: string[];
+  q: number;
+  n?: string;
+}
+
+export function toOrderLines(lines: readonly CartLine[]): OrderLineInput[] {
+  return lines.map((l) => ({
+    i: l.itemId,
+    ...(l.sizeId ? { s: l.sizeId } : {}),
+    ...(l.addons.length ? { a: l.addons.map((a) => a.id) } : {}),
+    q: l.qty,
+    ...(l.note?.trim() ? { n: l.note.trim().slice(0, 120) } : {}),
+  }));
+}
+
+/** A random id for an order (or a phone), from the browser's crypto. */
+export function randomRef(length = 22): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
 }
 
 /** "Call the waiter" / "Bring the bill": a short message with the table. */

@@ -7,8 +7,11 @@ import { Alert, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { inputClass } from "@/components/ui/field";
 import { CUISINES } from "@/config/cuisines";
+import { BRAND } from "@/config/brand";
+import { getDirectoryTop } from "@/lib/directory";
+import { formatUGX } from "@/lib/money";
 import { publicEnv } from "@/lib/env";
-import { openStatus, type OpeningHours } from "@/lib/hours";
+import { formatClock, openStatus, type OpeningHours } from "@/lib/hours";
 import { getTranslator, type MessageKey } from "@/lib/i18n";
 import { imageUrl, pickWidth, type ImageDescriptor } from "@/lib/images/shared";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -36,6 +39,13 @@ interface Listing {
   opening_hours: OpeningHours;
   featured: boolean;
   dishes: string[];
+  /** The listing's best "Sell it today" deal that is on now. */
+  deal: { item: string; percent: number; ends_at: string; was: number | null; price: number | null } | null;
+}
+
+function kampalaClock(iso: string): string {
+  const local = new Date(Date.parse(iso) + 3 * 3_600_000);
+  return formatClock(local.getUTCHours() * 60 + local.getUTCMinutes());
 }
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() ?? "";
@@ -77,9 +87,12 @@ async function Directory({ searchParams }: { searchParams: PageProps<"/menus">["
   const now = new Date();
   const withStatus = result.results.map((l) => {
     const status = openStatus(l.opening_hours, now);
-    return { ...l, open: status.known && status.open };
+    const deal = l.deal && Date.parse(l.deal.ends_at) > now.getTime() ? l.deal : null;
+    return { ...l, deal, open: status.known && status.open };
   });
   const shown = openOnly ? withStatus.filter((l) => l.open) : withStatus;
+  // Rankings only when browsing (not searching), so they never hide results.
+  const top = q || cuisine || price ? [] : await getDirectoryTop(area || null);
 
   return (
     <>
@@ -144,6 +157,30 @@ async function Directory({ searchParams }: { searchParams: PageProps<"/menus">["
         </Button>
       </form>
 
+      {top.length >= 2 ? (
+        <section aria-labelledby="top-title" className="space-y-2 rounded-[var(--radius-card)] border border-line bg-card p-4">
+          <h2 id="top-title" className="text-xl font-extrabold">
+            {area ? t("directory.topTitle", { area }) : t("directory.topTitleAll")}
+          </h2>
+          <ol className="space-y-1">
+            {top.map((p, i) => (
+              <li key={p.slug}>
+                <Link href={`/r/${p.slug}`} className="flex min-h-11 items-center gap-3 font-bold">
+                  <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{p.name}</span>
+                    {!area && p.area ? <span className="block text-sm font-normal text-muted">{p.area}</span> : null}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+          <p className="text-sm text-muted">{t("directory.topHint", { brand: BRAND.name })}</p>
+        </section>
+      ) : null}
+
       <p className="font-bold" aria-live="polite">
         {t("directory.results", { count: shown.length })}
       </p>
@@ -179,6 +216,13 @@ async function Directory({ searchParams }: { searchParams: PageProps<"/menus">["
                 </span>
                 <span className={`block text-sm font-bold ${l.open ? "text-brand" : "text-muted"}`}>{l.open ? t("directory.open") : t("directory.closed")}</span>
                 {l.dishes.length ? <span className="block text-sm">{t("directory.matches", { dishes: l.dishes.join(", ") })}</span> : null}
+                {l.deal ? (
+                  <span className="block rounded-lg bg-accent-soft px-2 py-1 text-sm">
+                    <span className="font-extrabold">{t("directory.deal", { item: l.deal.item, percent: l.deal.percent })}</span>
+                    {l.deal.price !== null && l.deal.was !== null ? ` · ${t("directory.dealPrice", { price: formatUGX(l.deal.price), was: formatUGX(l.deal.was) })}` : ""}
+                    {` · ${t("directory.dealUntil", { time: kampalaClock(l.deal.ends_at) })}`}
+                  </span>
+                ) : null}
               </span>
             </Link>
           </li>

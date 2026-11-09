@@ -19,13 +19,14 @@ export const FEATURES = [
   "menu_editing",
   /** A QR code per table (Free gets one restaurant-wide QR code). */
   "table_qr",
-  /** Cart and "Order on WhatsApp". */
+  /** The cart and ordering: show the order to a waiter or send it on WhatsApp. */
   "whatsapp_ordering",
   /** Show the restaurant's MTN and Airtel merchant codes to diners. */
   "momo_pay",
   "directory_listing",
   /** No "Made with Menyu" footer. */
   "hide_footer",
+  /** Specials, happy hours and "Sell it today" deals. */
   "specials",
   "insights",
   "feedback",
@@ -35,6 +36,10 @@ export const FEATURES = [
   "staff",
   "branches",
   "featured_listing",
+  /** Loyalty stamps: a free reward after a number of visits. */
+  "loyalty",
+  /** Orders go to a kitchen screen (New, Cooking, Ready). */
+  "kitchen",
 ] as const;
 export type Feature = (typeof FEATURES)[number];
 

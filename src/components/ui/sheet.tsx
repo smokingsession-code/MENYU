@@ -7,6 +7,8 @@ import { CloseIcon } from "@/components/menu/icons";
  * Bottom sheet built on <dialog> (focus trap, Escape and screen-reader
  * support come free). The phone's back button closes the sheet instead of
  * leaving the menu, which is what people expect on Android.
+ *
+ * full: covers the whole screen (the bill shown to a waiter, a kitchen order).
  */
 export function Sheet({
   open,
@@ -15,6 +17,7 @@ export function Sheet({
   closeLabel,
   children,
   footer,
+  full = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -22,6 +25,7 @@ export function Sheet({
   closeLabel: string;
   children: ReactNode;
   footer?: ReactNode;
+  full?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const pushedHistory = useRef(false);
@@ -73,10 +77,14 @@ export function Sheet({
         // A tap on the dimmed backdrop closes the sheet.
         if (e.target === ref.current) ref.current.close();
       }}
-      className="m-0 mt-auto max-h-[92vh] w-full max-w-none overflow-hidden rounded-t-3xl bg-card p-0 text-ink backdrop:bg-black/50 sm:m-auto sm:max-w-lg sm:rounded-3xl"
+      className={
+        full
+          ? "m-0 h-dvh max-h-none w-full max-w-none overflow-hidden bg-card p-0 text-ink backdrop:bg-black/50 sm:m-auto sm:h-[92vh] sm:max-w-lg sm:rounded-3xl"
+          : "m-0 mt-auto max-h-[92vh] w-full max-w-none overflow-hidden rounded-t-3xl bg-card p-0 text-ink backdrop:bg-black/50 sm:m-auto sm:max-w-lg sm:rounded-3xl"
+      }
     >
       {open ? (
-        <div className="flex max-h-[92vh] flex-col">
+        <div className={`flex flex-col ${full ? "h-full" : "max-h-[92vh]"}`}>
           <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
             <h2 id={titleId} className="min-w-0 truncate text-lg font-extrabold">
               {title}

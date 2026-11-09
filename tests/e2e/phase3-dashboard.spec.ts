@@ -155,7 +155,7 @@ test.describe("phase 3: owner dashboard", () => {
     await expect(page.getByRole("heading", { name: "Sold out today" })).toBeVisible();
     const nav = page.getByRole("navigation", { name: fixture.name });
     // Staff on Pro also read diners' feedback.
-    await expect(nav.getByRole("link")).toHaveText(["Home", "Menu", "Feedback"]);
+    await expect(nav.getByRole("link")).toHaveText(["Home", "Menu", "Kitchen", "Feedback"]);
     await expect(page.getByRole("button", { name: "Change prices" })).toHaveCount(0);
     await page.getByRole("switch", { name: /Dish 1/ }).click();
     await expect(page.getByRole("switch", { name: /Dish 1/ })).toHaveAttribute("aria-checked", "true");

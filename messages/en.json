@@ -523,7 +523,12 @@
       "total": "Total",
       "name": "Name",
       "address": "Address",
-      "note": "Note"
+      "note": "Note",
+      "payment": "Payment",
+      "payments": {
+        "momo": "Mobile Money",
+        "cash": "Cash"
+      }
     },
     "specialsTitle": "Specials now",
     "specialUntil": "Until {time}",
@@ -553,7 +558,65 @@
     "feedbackThanks": "Thank you! The owner will read it.",
     "feedbackPick": "Tap a star to rate your visit.",
     "feedbackTooMany": "Thank you, we already have your feedback.",
-    "feedbackFailed": "That didn't send. Check your connection and try again."
+    "feedbackFailed": "That didn't send. Check your connection and try again.",
+    "dealsTitle": "Today only",
+    "dealOff": "{percent}% off",
+    "dealUntil": "Until {time}",
+    "dealWas": "Was {price}",
+    "dealNow": "now {price}",
+    "payHow": "How will you pay?",
+    "payCash": "Cash",
+    "payCashBody": "Pay the waiter or at the counter.",
+    "payMomoShort": "Mobile Money",
+    "payWith": "Paying with {method}",
+    "payOptions": "You can pay with {methods}.",
+    "payOr": "{a} or {b}",
+    "showWaiter": "Show to waiter",
+    "sendKitchen": "Send to kitchen",
+    "sendingOrder": "Sending…",
+    "waiterTitle": "Show this to your waiter",
+    "waiterTable": "Table {table}",
+    "waiterNoTable": "Tell the waiter your table",
+    "backToMenu": "Back to the menu",
+    "orderNumber": "Order {number}",
+    "kitchenSent": "Sent to the kitchen",
+    "kitchenSteps": {
+      "new": "Received",
+      "cooking": "Cooking",
+      "ready": "Ready"
+    },
+    "kitchenStatus": {
+      "new": "Received",
+      "cooking": "Cooking",
+      "ready": "Ready",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "kitchenReady": "Your order is ready!",
+    "kitchenDone": "Enjoy your meal!",
+    "kitchenCancelled": "The kitchen cancelled this order. Please ask a waiter.",
+    "kitchenWatch": "This page shows when it's ready.",
+    "kitchenPill": "Order {number}: {status}",
+    "orderFailed": "Your order didn't go through. Check your internet and try again.",
+    "orderSoldOut": "Sorry, just sold out: {items}. Remove them, then send again.",
+    "orderChanged": "The menu has just changed. Refresh to see it, then send your order.",
+    "orderTooMany": "Too many orders from this phone just now. Please ask a waiter.",
+    "loyaltyTitle": "Loyalty card",
+    "loyaltyStamps": "{stamps} of {visits} stamps",
+    "loyaltyMore": "{count} more for {reward}",
+    "loyaltyHow": "Each order earns a stamp, one a day. {visits} stamps = {reward}.",
+    "loyaltyMin": "Orders from {amount} earn a stamp.",
+    "loyaltyEarned": "Stamp added! {stamps} of {visits}",
+    "loyaltyToday": "Today's stamp is on your card.",
+    "loyaltyReady": "Your reward is ready: {reward}!",
+    "loyaltyUse": "Use my reward now",
+    "loyaltyConfirm": "Show this screen to the waiter. Use your reward now?",
+    "loyaltyYes": "Yes, use it",
+    "loyaltyNo": "Not now",
+    "loyaltyUsed": "Reward used",
+    "loyaltyUsedAt": "Used at {time}",
+    "loyaltyKept": "Your stamps are kept on this phone.",
+    "loyaltyFailed": "Couldn't use the reward. Check your internet and try again."
   },
   "print": {
     "scanForMenu": "Scan for menu",
@@ -588,7 +651,8 @@
     "profile": "Profile",
     "adminView": "Admin view",
     "feedback": "Feedback",
-    "staff": "Staff"
+    "staff": "Staff",
+    "kitchen": "Kitchen"
   },
   "editor": {
     "title": "Menu",
@@ -910,7 +974,7 @@
     "insights": "Insights",
     "insightsHint": "Views, busy hours, top dishes",
     "proUpsellTitle": "Get more with Pro",
-    "proUpsellBody": "Specials and happy hour, private feedback from diners, insights, and \"Call the waiter\" and \"Bring the bill\" buttons.",
+    "proUpsellBody": "Sell it today deals, loyalty stamps, a kitchen screen, specials and happy hour, private feedback from diners, insights, and \"Call the waiter\" and \"Bring the bill\" buttons.",
     "proUpsellCta": "See plans",
     "referTitle": "Invite another restaurant",
     "referBody": "When a restaurant you invite starts paying, you get a month free.",
@@ -920,7 +984,19 @@
     "staff": "Staff",
     "staffHint": "Invite your team",
     "branches": "Branches",
-    "branchesHint": "Your other locations"
+    "branchesHint": "Your other locations",
+    "todayTitle": "Today",
+    "todayOrders": "Orders",
+    "todayValue": "Order value",
+    "todayHint": "Orders diners sent, showed a waiter or sent to the kitchen from your menu today. Payment is not checked.",
+    "sellToday": "Sell it today",
+    "sellTodayHint": "Put a dish on offer until later today",
+    "dealsLive": "On now: {deals}",
+    "kitchen": "Kitchen screen",
+    "kitchenHint": "New, cooking and ready orders",
+    "kitchenNew": "New: {count}",
+    "ordering": "How diners order",
+    "orderingHint": "Waiter, WhatsApp or kitchen · cash · loyalty stamps"
   },
   "import": {
     "title": "Import your menu from photos",
@@ -1123,7 +1199,8 @@
         "whatsapp": "Orders on WhatsApp",
         "dashboard": "Change your menu any time",
         "listing": "Listed in Menus near me",
-        "footer": "No Menyu footer"
+        "footer": "No Menyu footer",
+        "waiter": "Or diners show their order to a waiter"
       },
       "pro": {
         "everything": "Everything in Standard",
@@ -1134,7 +1211,10 @@
         "photos": "Photo auto-fix for dish photos",
         "staff": "Staff accounts",
         "branches": "Several branches",
-        "featured": "Featured in Menus near me"
+        "featured": "Featured in Menus near me",
+        "sellToday": "Sell it today deals",
+        "loyalty": "Loyalty stamps",
+        "kitchen": "Kitchen screen for orders"
       }
     },
     "reminder": {
@@ -1253,7 +1333,16 @@
     "views": "Views",
     "count": "{count} views",
     "ordersCount": "{count} orders",
-    "peak": "Most: {count}"
+    "peak": "Most: {count}",
+    "salesTitle": "Orders and sales",
+    "salesHint": "Orders sent from your menu, not cancelled. Payment is not checked, so this is not money received.",
+    "salesOrders": "Orders",
+    "salesValue": "Order value",
+    "salesAverage": "Average order",
+    "salesPerDay": "Order value per day",
+    "salesTop": "Most ordered",
+    "salesNone": "No orders from your menu in this period yet.",
+    "amount": "Value"
   },
   "directory": {
     "title": "Menus near me",
@@ -1282,7 +1371,13 @@
     "open": "Open now",
     "closed": "Closed now",
     "matches": "Has {dishes}",
-    "adminPreview": "The directory is switched off: only you can see this page."
+    "adminPreview": "The directory is switched off: only you can see this page.",
+    "deal": "Today: {item} {percent}% off",
+    "dealPrice": "{price} (was {was})",
+    "dealUntil": "until {time}",
+    "topTitle": "Top in {area} this week",
+    "topTitleAll": "Top this week",
+    "topHint": "By menu visits and orders on {brand} in the last 7 days. Ratings are private and never used."
   },
   "staff": {
     "title": "Staff",
@@ -1336,5 +1431,114 @@
       "whatsapp": "Enter a valid WhatsApp number, like 0772 123 456.",
       "failed": "Couldn't add the branch. Please try again."
     }
+  },
+  "ordering": {
+    "title": "How diners order",
+    "intro": "Choose what the order button on your menu does, how diners can pay, and loyalty stamps.",
+    "modeTitle": "The order button",
+    "modes": {
+      "waiter": "Show to waiter",
+      "whatsapp": "Send on WhatsApp",
+      "kitchen": "Send to kitchen"
+    },
+    "modeHints": {
+      "waiter": "The diner's phone shows a big, clear bill with the table number for the waiter. No WhatsApp needed.",
+      "whatsapp": "The order arrives as a WhatsApp message on {phone}.",
+      "kitchen": "Orders appear on your Kitchen screen: New, Cooking, Ready. Diners see when theirs is ready."
+    },
+    "needsWhatsapp": "Add a WhatsApp number in Profile first.",
+    "kitchenPro": "The kitchen screen comes with the Pro plan.",
+    "deliveryNote": "Delivery orders always go on WhatsApp.",
+    "payTitle": "Payment",
+    "cash": "Diners can pay with cash",
+    "cashHint": "Shown next to your Mobile Money codes and on the bill.",
+    "momoCodes": "Mobile Money codes: {codes}",
+    "momoNone": "No Mobile Money codes yet.",
+    "momoEdit": "Edit codes in Profile",
+    "loyaltyTitle": "Loyalty stamps",
+    "loyaltyIntro": "Diners get a stamp on their phone each day they order from your menu (one a day per phone). After enough stamps they get the reward: they show it to your waiter and use it there.",
+    "loyaltyOn": "Give loyalty stamps",
+    "loyaltyVisits": "Stamps for a reward",
+    "loyaltyReward": "Reward",
+    "loyaltyRewardHint": "Finish the sentence \"5 stamps = …\", for example \"a free juice\".",
+    "loyaltyRewardPlaceholder": "a free juice",
+    "loyaltyRewardLg": "Reward in Luganda",
+    "loyaltyMin": "Smallest order for a stamp (UGX)",
+    "loyaltyMinHint": "0 means every order counts.",
+    "loyaltyPro": "Loyalty stamps come with the Pro plan.",
+    "loyaltyStats": "Diners with stamps: {cards} · Rewards used: {used}",
+    "save": "Save",
+    "saved": "Saved. Your menu shows it now.",
+    "errors": {
+      "reward": "Write the reward, for example \"a free juice\".",
+      "visits": "Choose between 2 and 20 stamps.",
+      "min": "Enter an amount like 10,000.",
+      "mode": "That way of ordering isn't available yet.",
+      "failed": "Could not save. Please try again."
+    }
+  },
+  "deals": {
+    "title": "Sell it today",
+    "intro": "Put a dish on offer until later today. Diners see it at the top of your menu and in Menus near me, and it ends by itself.",
+    "dish": "Dish",
+    "dishPlaceholder": "Choose a dish",
+    "search": "Find a dish",
+    "discount": "Discount",
+    "percent": "{percent}% off",
+    "until": "Until",
+    "presets": {
+      "h1": "In 1 hour",
+      "h3": "In 3 hours",
+      "close": "Closing time"
+    },
+    "untilTime": "Or a time",
+    "note": "Note for diners",
+    "notePlaceholder": "Fresh this morning",
+    "noteLg": "Note in Luganda",
+    "start": "Start the deal",
+    "starting": "Starting…",
+    "started": "Deal started. It's on your menu now.",
+    "live": "On now",
+    "none": "No deals on now.",
+    "endsAt": "Until {time}",
+    "end": "End now",
+    "ending": "Ending…",
+    "ended": "Deal ended.",
+    "proOnly": "Sell it today comes with the Pro plan: put a dish on offer until later today.",
+    "errors": {
+      "dish": "Choose a dish.",
+      "percent": "Choose a discount.",
+      "time": "Choose a time at least 5 minutes from now, within the next 24 hours.",
+      "failed": "Could not start the deal. Please try again."
+    }
+  },
+  "kitchen": {
+    "title": "Kitchen",
+    "intro": "Orders from your menu. Move each one along; the diner sees it on their phone.",
+    "columns": {
+      "new": "New",
+      "cooking": "Cooking",
+      "ready": "Ready"
+    },
+    "empty": "Nothing here.",
+    "start": "Start cooking",
+    "ready": "Ready",
+    "done": "Served",
+    "cancel": "Cancel order",
+    "cancelConfirm": "Cancel order {number}? The diner will see it was cancelled.",
+    "cancelYes": "Yes, cancel",
+    "cancelNo": "Keep it",
+    "back": "Move back",
+    "order": "Order {number}",
+    "table": "Table {table}",
+    "minutes": "{count} min ago",
+    "justNow": "Just now",
+    "paying": "Paying: {method}",
+    "doneToday": "Served today: {count}",
+    "offMode": "Your menu isn't sending orders to the kitchen. Choose \"Send to kitchen\" in How diners order.",
+    "proOnly": "The kitchen screen comes with the Pro plan.",
+    "offline": "Can't reach Menyu. Trying again…",
+    "sound": "Beep for new orders",
+    "failed": "Could not update the order. Please try again."
   }
 }

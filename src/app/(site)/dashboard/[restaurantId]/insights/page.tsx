@@ -7,6 +7,7 @@ import { planHas } from "@/config/plans";
 import { getDashboardContext } from "@/lib/dashboard";
 import { DAY_KEYS, formatClock } from "@/lib/hours";
 import { getTranslator } from "@/lib/i18n";
+import { formatUGX } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 
 const t = getTranslator("en");
@@ -27,6 +28,13 @@ interface Insights {
   hours: { hour: number; views: number }[];
   top_items: { id: string; name: string; views: number }[];
   tables: { code: string; views: number }[];
+  /** Orders placed from the menu (not cancelled). Payment is not checked. */
+  sales?: {
+    orders: number;
+    value: number;
+    per_day: { date: string; orders: number; value: number }[];
+    top: { name: string; qty: number; value: number }[];
+  };
 }
 
 function weekday(date: string): string {
@@ -75,6 +83,8 @@ export default async function InsightsPage({ params, searchParams }: PageProps<"
   }));
   const tot = insights.totals;
   const tableSummary = { name: t("insights.day"), value: t("insights.views"), summary: t("insights.showTable") };
+  const sales = insights.sales ?? { orders: 0, value: 0, per_day: [], top: [] };
+  const salesPerDay: Bar[] = sales.per_day.map((d, i) => ({ ...perDay[i], name: perDay[i]?.name ?? d.date, label: perDay[i]?.label ?? "", value: d.value }));
 
   return (
     <div className="space-y-5">
@@ -105,6 +115,41 @@ export default async function InsightsPage({ params, searchParams }: PageProps<"
       </div>
 
       {tot.menu_views === 0 ? <p className="rounded-xl bg-card p-4">{t("insights.none")}</p> : null}
+
+      <Card className="space-y-3">
+        <div>
+          <h2 className="text-lg font-extrabold">{t("insights.salesTitle")}</h2>
+          <p className="text-sm text-muted">{t("insights.salesHint")}</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3">
+          <StatTile label={t("insights.salesOrders")} value={sales.orders} />
+          <StatTile label={t("insights.salesValue")} value={sales.value} display={formatUGX(sales.value)} />
+          <StatTile
+            label={t("insights.salesAverage")}
+            value={sales.orders ? Math.round(sales.value / sales.orders) : 0}
+            display={formatUGX(sales.orders ? Math.round(sales.value / sales.orders / 100) * 100 : 0)}
+          />
+        </div>
+        {sales.orders === 0 ? (
+          <p className="text-muted">{t("insights.salesNone")}</p>
+        ) : (
+          <>
+            <ColumnChart
+              title={t("insights.salesPerDay")}
+              bars={salesPerDay}
+              unit="{count}"
+              peakLabel={t("insights.peak")}
+              table={{ ...tableSummary, value: t("insights.amount") }}
+              format={formatUGX}
+            />
+            <RankedBars
+              title={t("insights.salesTop")}
+              rows={sales.top.map((i) => ({ name: i.name, label: i.name, value: i.qty }))}
+              empty={t("insights.salesNone")}
+            />
+          </>
+        )}
+      </Card>
 
       <Card>
         <ColumnChart title={t("insights.perDay")} bars={perDay} unit={t("insights.count")} peakLabel={t("insights.peak")} table={tableSummary} />

@@ -11,11 +11,11 @@ function fill(template: string, vars: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
 }
 
-export function StatTile({ label, value }: { label: string; value: number }) {
+export function StatTile({ label, value, display }: { label: string; value: number; /** e.g. "UGX 45,000" instead of the bare number. */ display?: string }) {
   return (
     <div className="rounded-xl border border-line bg-card p-3">
       <p className="text-sm text-muted">{label}</p>
-      <p className="text-3xl font-extrabold tabular-nums">{value.toLocaleString("en-GB")}</p>
+      <p className={`font-extrabold tabular-nums ${display ? "text-2xl" : "text-3xl"}`}>{display ?? value.toLocaleString("en-GB")}</p>
     </div>
   );
 }
@@ -28,7 +28,19 @@ export interface Bar {
   value: number;
 }
 
-function DataTable({ rows, nameHeader, valueHeader, summary }: { rows: Bar[]; nameHeader: string; valueHeader: string; summary: string }) {
+function DataTable({
+  rows,
+  nameHeader,
+  valueHeader,
+  summary,
+  format = String,
+}: {
+  rows: Bar[];
+  nameHeader: string;
+  valueHeader: string;
+  summary: string;
+  format?: (value: number) => string;
+}) {
   return (
     <details className="mt-2">
       <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-bold text-brand">{summary}</summary>
@@ -43,7 +55,7 @@ function DataTable({ rows, nameHeader, valueHeader, summary }: { rows: Bar[]; na
           {rows.map((r) => (
             <tr key={r.name} className="border-t border-line">
               <td className="py-1">{r.name}</td>
-              <td className="py-1 text-right tabular-nums">{r.value}</td>
+              <td className="py-1 text-right tabular-nums">{format(r.value)}</td>
             </tr>
           ))}
         </tbody>
@@ -60,6 +72,7 @@ export function ColumnChart({
   unit,
   peakLabel,
   table,
+  format = (value: number) => String(value),
 }: {
   title: string;
   hint?: string;
@@ -69,6 +82,8 @@ export function ColumnChart({
   /** "Most: {count}" */
   peakLabel: string;
   table: { name: string; value: string; summary: string };
+  /** How a value is written (e.g. as money). */
+  format?: (value: number) => string;
 }) {
   const max = Math.max(0, ...bars.map((b) => b.value));
   const peak = max > 0 ? bars.findIndex((b) => b.value === max) : -1;
@@ -83,9 +98,9 @@ export function ColumnChart({
         <div className="absolute inset-x-0 top-[calc(1.25rem+50%-0.625rem)] border-t border-line/70" />
         <div className="relative flex h-full items-end gap-[2px]">
           {bars.map((b, i) => (
-            <div key={b.name} className="group relative flex h-full flex-1 items-end" title={`${b.name}: ${fill(unit, { count: b.value })}`}>
+            <div key={b.name} className="group relative flex h-full flex-1 items-end" title={`${b.name}: ${fill(unit, { count: format(b.value) })}`}>
               {i === peak ? (
-                <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold">{fill(peakLabel, { count: max })}</span>
+                <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold">{fill(peakLabel, { count: format(max) })}</span>
               ) : null}
               <div
                 className="w-full rounded-t-[4px] bg-brand transition-opacity group-hover:opacity-80"
@@ -102,7 +117,7 @@ export function ColumnChart({
           </span>
         ))}
       </div>
-      <DataTable rows={bars} nameHeader={table.name} valueHeader={table.value} summary={table.summary} />
+      <DataTable rows={bars} nameHeader={table.name} valueHeader={table.value} summary={table.summary} format={format} />
     </figure>
   );
 }

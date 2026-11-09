@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { dealIsOn, dealPrice } from "@/lib/deals";
 import { formatUGX } from "@/lib/money";
 import { imageSrcSet, imageUrl, pickWidth } from "@/lib/images/shared";
 import { lineKey, unitPrice, type CartLine } from "@/lib/order";
-import { addonsOf, sizesOf, type PublicItem } from "@/lib/menu/types";
+import { addonsOf, sizesOf, type PublicDeal, type PublicItem } from "@/lib/menu/types";
 import type { DinerStrings, Translate } from "./menu-app";
 import { MinusIcon, PlusIcon } from "./icons";
 import { Sheet } from "@/components/ui/sheet";
@@ -12,6 +13,7 @@ import { TagList } from "./tags";
 
 export function ItemSheet({
   item,
+  deal,
   open,
   onClose,
   onAdd,
@@ -21,6 +23,8 @@ export function ItemSheet({
   tr,
 }: {
   item: PublicItem | null;
+  /** A "Sell it today" deal on this dish, if one was on when the menu loaded. */
+  deal?: PublicDeal;
   open: boolean;
   onClose: () => void;
   onAdd: (line: CartLine) => void;
@@ -32,13 +36,14 @@ export function ItemSheet({
   return (
     <Sheet open={open && !!item} onClose={onClose} title={item ? tr(item.name, item.name_lg) : ""} closeLabel={s.close}>
       {/* Keyed by item so choices reset when a different dish opens. */}
-      {item ? <ItemDetails key={item.id} item={item} onAdd={onAdd} onClose={onClose} canOrder={canOrder} soldOut={soldOut} s={s} tr={tr} /> : null}
+      {item ? <ItemDetails key={item.id} item={item} deal={deal} onAdd={onAdd} onClose={onClose} canOrder={canOrder} soldOut={soldOut} s={s} tr={tr} /> : null}
     </Sheet>
   );
 }
 
 function ItemDetails({
   item,
+  deal,
   onAdd,
   onClose,
   canOrder,
@@ -47,6 +52,7 @@ function ItemDetails({
   tr,
 }: {
   item: PublicItem;
+  deal?: PublicDeal;
   onAdd: (line: CartLine) => void;
   onClose: () => void;
   canOrder: boolean;
@@ -60,15 +66,18 @@ function ItemDetails({
   const [addonIds, setAddonIds] = useState<string[]>([]);
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
+  // Decided when the dish opens (the sheet only ever renders in the browser).
+  const [percentOff] = useState(() => (deal && dealIsOn(deal, Date.now()) ? deal.percent : 0));
+  const off = (value: number) => (percentOff ? dealPrice(value, percentOff) : value);
 
   const size = sizes.find((x) => x.id === sizeId);
   const chosenAddons = addons.filter((a) => addonIds.includes(a.id)).map((a) => ({ id: a.id, name: tr(a.name, a.name_lg), price: a.price }));
-  const price = unitPrice(item.price, size?.price, chosenAddons);
+  const price = unitPrice(item.price === null ? null : off(item.price), size ? off(size.price) : undefined, chosenAddons);
   const description = tr(item.description ?? "", item.description_lg);
 
   function add() {
     onAdd({
-      key: lineKey(item.id, size?.id, chosenAddons.map((a) => a.id), note),
+      key: lineKey(item.id, size?.id, chosenAddons.map((a) => a.id), note) + (percentOff ? `|-${percentOff}` : ""),
       itemId: item.id,
       name: tr(item.name, item.name_lg),
       sizeId: size?.id,
@@ -77,6 +86,7 @@ function ItemDetails({
       unitPrice: price,
       qty,
       note: note.trim() || undefined,
+      ...(percentOff ? { percentOff } : {}),
     });
     onClose();
   }
@@ -97,6 +107,11 @@ function ItemDetails({
         />
       ) : null}
       <div className="space-y-4 p-4">
+        {percentOff ? (
+          <p className="inline-block rounded-full bg-accent px-3 py-1 font-extrabold text-ink">
+            {s.dealsTitle} · {s.dealOff.replace("{percent}", String(percentOff))}
+          </p>
+        ) : null}
         {item.tags.length ? <TagList tags={item.tags} s={s} /> : null}
         {description ? <p className="text-base text-muted">{description}</p> : null}
         {soldOut ? <p className="inline-block rounded-full bg-danger-soft px-3 py-1 font-bold text-danger">{s.soldOut}</p> : null}
@@ -118,7 +133,10 @@ function ItemDetails({
                   />
                   {tr(option.name, option.name_lg)}
                 </span>
-                <span className="font-bold">{formatUGX(option.price)}</span>
+                <span className="font-bold">
+                  {percentOff ? <s className="mr-1.5 font-normal text-muted">{formatUGX(option.price)}</s> : null}
+                  {formatUGX(off(option.price))}
+                </span>
               </label>
             ))}
           </fieldset>

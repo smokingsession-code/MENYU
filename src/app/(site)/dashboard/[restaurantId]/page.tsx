@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { connection } from "next/server";
+import { StatTile } from "@/components/dashboard/insights-charts";
 import { Alert, Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
@@ -22,6 +24,23 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
 
   const supabase = await createClient();
   const pro = planHas(ctx.plan, "feedback");
+  await connection();
+  const now = new Date();
+  const today = new Date(now.getTime() + 3 * 3_600_000).toISOString().slice(0, 10);
+  const ordering = planHas(ctx.plan, "whatsapp_ordering");
+  const [{ data: todays }, { data: liveDeals }, { count: kitchenNew }] = await Promise.all([
+    ordering && ctx.role !== "staff"
+      ? supabase.from("orders").select("total_ugx").eq("branch_id", ctx.branch.id).eq("local_date", today).neq("status", "cancelled").limit(5000)
+      : Promise.resolve({ data: null }),
+    planHas(ctx.plan, "specials") && ctx.role !== "staff"
+      ? supabase.from("deals").select("percent_off, items(name)").eq("branch_id", ctx.branch.id).is("deleted_at", null).gt("ends_at", now.toISOString())
+      : Promise.resolve({ data: null }),
+    planHas(ctx.plan, "kitchen")
+      ? supabase.from("orders").select("id", { count: "exact", head: true }).eq("branch_id", ctx.branch.id).eq("mode", "kitchen").eq("status", "new")
+      : Promise.resolve({ count: 0 }),
+  ]);
+  const todayValue = (todays ?? []).reduce((sum, o) => sum + o.total_ugx, 0);
+  const dealsText = (liveDeals ?? []).map((d) => `${d.items?.name ?? ""} -${d.percent_off}%`).join(", ");
   const [{ count: items }, { count: tables }, { count: unread }, { data: referrals }] = await Promise.all([
     supabase.from("items").select("id", { count: "exact", head: true }).eq("menu_id", ctx.branch.menuId).is("deleted_at", null),
     supabase.from("tables").select("id", { count: "exact", head: true }).eq("branch_id", ctx.branch.id).is("deleted_at", null),
@@ -94,6 +113,20 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
         </div>
       </Card>
 
+      {todays ? (
+        <Card className="space-y-2">
+          <h2 className="text-lg font-extrabold">{t("home2.todayTitle")}</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <StatTile label={t("home2.todayOrders")} value={todays.length} />
+            <div className="rounded-xl border border-line bg-card p-3">
+              <p className="text-sm text-muted">{t("home2.todayValue")}</p>
+              <p className="text-2xl font-extrabold tabular-nums">{formatUGX(todayValue)}</p>
+            </div>
+          </div>
+          <p className="text-sm text-muted">{t("home2.todayHint")}</p>
+        </Card>
+      ) : null}
+
       {ctx.plan === "free" && ctx.role !== "staff" ? (
         <Card className="space-y-2 border-accent-dark/40 bg-accent-soft">
           <h2 className="text-lg font-extrabold">{t("home2.freeTitle")}</h2>
@@ -129,6 +162,12 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
         <ButtonLink href={`${base}/menu`} variant="outline" className="min-h-16">
           {ctx.role === "staff" ? t("home2.quickSoldOut") : t("home2.quickMenu")}
         </ButtonLink>
+        {ctx.role === "staff" && planHas(ctx.plan, "kitchen") ? (
+          <ButtonLink href={`${base}/kitchen`} variant="outline" className="min-h-16">
+            {t("home2.kitchen")}
+            {kitchenNew ? ` (${kitchenNew})` : ""}
+          </ButtonLink>
+        ) : null}
         {ctx.role !== "staff" ? (
           <>
             <ButtonLink href={`${base}/menu`} variant="outline" className="min-h-16">
@@ -140,6 +179,11 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
             <ButtonLink href={`${base}/profile`} variant="outline" className="min-h-16">
               {t("home2.quickProfile")}
             </ButtonLink>
+            {ordering ? (
+              <ButtonLink href={`${base}/ordering`} variant="outline" className="col-span-2 min-h-16">
+                {t("home2.ordering")}
+              </ButtonLink>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -149,8 +193,10 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
           <h2 className="text-lg font-extrabold">{t("home2.proTitle")}</h2>
           <ul className="divide-y divide-line">
             {[
+              { href: `${base}/deals`, title: t("home2.sellToday"), hint: dealsText ? t("home2.dealsLive", { deals: dealsText }) : t("home2.sellTodayHint"), badge: 0 },
+              { href: `${base}/kitchen`, title: t("home2.kitchen"), hint: t("home2.kitchenHint"), badge: kitchenNew ?? 0, badgeText: t("home2.kitchenNew", { count: kitchenNew ?? 0 }) },
               { href: `${base}/specials`, title: t("home2.specials"), hint: t("home2.specialsHint"), badge: 0 },
-              { href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0 },
+              { href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0, badgeText: t("home2.feedbackUnread", { count: unread ?? 0 }) },
               { href: `${base}/insights`, title: t("home2.insights"), hint: t("home2.insightsHint"), badge: 0 },
               { href: `${base}/staff`, title: t("home2.staff"), hint: t("home2.staffHint"), badge: 0 },
               { href: `${base}/branches`, title: t("home2.branches"), hint: t("home2.branchesHint"), badge: 0 },
@@ -162,7 +208,7 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
                     <span className="block text-sm text-muted">{tool.hint}</span>
                   </span>
                   {tool.badge > 0 ? (
-                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold">{t("home2.feedbackUnread", { count: tool.badge })}</span>
+                    <span className="shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold">{"badgeText" in tool ? tool.badgeText : tool.badge}</span>
                   ) : (
                     <span aria-hidden="true" className="text-xl text-muted">›</span>
                   )}

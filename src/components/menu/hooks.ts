@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { addLine, setQty as setLineQty, type CartLine } from "@/lib/order";
+import { addLine, randomRef, setQty as setLineQty, type CartLine, type OrderLineInput, type OrderMode, type OrderType, type PaymentChoice } from "@/lib/order";
 
 /** "{name} costs {price}" with values filled in. */
 export function fill(template: string, vars: Record<string, string | number>): string {
@@ -27,34 +27,185 @@ function storageSet(key: string, value: unknown, storage: "local" | "session" = 
 
 const CART_TTL_MS = 12 * 60 * 60 * 1000;
 
-/** The cart, kept per menu in localStorage for 12 hours. */
+/**
+ * The cart, kept per menu in localStorage for 12 hours. Each cart has a
+ * random order ref: showing or sending the same cart again updates the same
+ * order; a new cart gets a new ref.
+ */
 export function useCart(slug: string) {
   const key = `menyu:cart:${slug}`;
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [ref, setRef] = useState("");
   const loaded = useRef(false);
 
   useEffect(() => {
-    const saved = storageGet<{ lines: CartLine[]; at: number }>(key);
+    const saved = storageGet<{ lines: CartLine[]; at: number; ref?: string }>(key);
+    const fresh = saved && Date.now() - saved.at < CART_TTL_MS && Array.isArray(saved.lines);
     // Restoring from storage after hydration keeps server and client HTML identical.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved && Date.now() - saved.at < CART_TTL_MS && Array.isArray(saved.lines)) setLines(saved.lines);
+    if (fresh) setLines(saved.lines);
+    setRef(fresh && saved.ref && /^[A-Za-z0-9]{12,40}$/.test(saved.ref) ? saved.ref : randomRef());
     loaded.current = true;
   }, [key]);
 
   useEffect(() => {
-    if (loaded.current) storageSet(key, { lines, at: Date.now() });
-  }, [key, lines]);
+    if (loaded.current) storageSet(key, { lines, at: Date.now(), ref });
+  }, [key, lines, ref]);
 
   return {
     lines,
+    ref,
     add: useCallback((line: CartLine) => setLines((current) => addLine(current, line)), []),
     setQty: useCallback((lineKey: string, qty: number) => setLines((current) => setLineQty(current, lineKey, qty)), []),
     setNote: useCallback(
       (lineKey: string, note: string) => setLines((current) => current.map((l) => (l.key === lineKey ? { ...l, note } : l))),
       [],
     ),
-    clear: useCallback(() => setLines([]), []),
+    clear: useCallback(() => {
+      setLines([]);
+      setRef(randomRef());
+    }, []),
   };
+}
+
+/**
+ * This phone's random loyalty id (only for restaurants with loyalty stamps).
+ * The server stores a hash of it; it never identifies the person.
+ */
+export function deviceId(): string | null {
+  let id = storageGet<string>("menyu:did");
+  if (!id || !/^[A-Za-z0-9]{16,64}$/.test(id)) {
+    id = randomRef(24);
+    storageSet("menyu:did", id);
+    // Storage off (private mode): no stable id, so no stamps.
+    if (storageGet<string>("menyu:did") !== id) return null;
+  }
+  return id;
+}
+
+export interface LoyaltyState {
+  stamps: number;
+  visits: number;
+  ready: boolean;
+  earned: boolean;
+  stamped_today: boolean;
+  last_used_at: string | null;
+}
+
+export interface ServerOrder {
+  ref: string;
+  number: number | null;
+  mode: OrderMode;
+  status: "sent" | "new" | "cooking" | "ready" | "done" | "cancelled";
+  status_at: string;
+  total: number;
+  item_count: number;
+  lines: { name: string; size?: string; addons?: string[]; qty: number; unit: number; total: number; note?: string; percent_off?: number }[];
+  created_at: string;
+}
+
+export interface OrderResponse {
+  result: "ok" | "sold_out" | "changed" | "mode_changed" | "invalid" | "too_many" | "not_found" | "not_available" | "error";
+  order?: ServerOrder;
+  loyalty?: LoyaltyState | null;
+  items?: string[];
+}
+
+export interface OrderRequest {
+  slug: string;
+  ref: string;
+  mode: OrderMode;
+  type: OrderType;
+  table?: string | null;
+  tableLabel?: string;
+  name?: string;
+  address?: string;
+  payment?: PaymentChoice | null;
+  lines: OrderLineInput[];
+  device?: string | null;
+}
+
+/** Records or sends an order. keepalive lets it finish while WhatsApp opens. */
+export async function sendOrder(request: OrderRequest): Promise<OrderResponse> {
+  try {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+      keepalive: true,
+      cache: "no-store",
+    });
+    const json = (await res.json().catch(() => null)) as OrderResponse | null;
+    return json && typeof json.result === "string" ? json : { result: "error" };
+  } catch {
+    return { result: "error" };
+  }
+}
+
+const KITCHEN_TTL_MS = 4 * 60 * 60 * 1000;
+const FINISHED = new Set(["done", "cancelled"]);
+
+/**
+ * The phone's latest kitchen order at this restaurant, remembered for four
+ * hours and refreshed every 10 seconds while it is being prepared.
+ */
+export function useKitchenOrder(slug: string) {
+  const key = `menyu:kitchen:${slug}`;
+  const [order, setOrder] = useState<ServerOrder | null>(null);
+
+  useEffect(() => {
+    const saved = storageGet<ServerOrder>(key);
+    const fresh = saved && Date.now() - Date.parse(saved.created_at) < KITCHEN_TTL_MS && saved.status !== "done";
+    // Read after hydration so server and client HTML match.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (fresh) setOrder(saved);
+  }, [key]);
+
+  const ref = order?.ref;
+  const status = order?.status;
+  useEffect(() => {
+    if (!ref || !status || FINISHED.has(status)) return;
+    let timer: number | undefined;
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState === "visible") {
+        try {
+          const res = await fetch(`/api/orders?s=${encodeURIComponent(slug)}&ref=${encodeURIComponent(ref)}`, { cache: "no-store" });
+          const json = res.ok ? ((await res.json()) as { order?: ServerOrder }) : null;
+          if (!stopped && json?.order) {
+            const next = json.order;
+            setOrder(next);
+            storageSet(key, next);
+            if (next.status === "ready" && status !== "ready") navigator.vibrate?.([200, 100, 200]);
+          }
+        } catch {
+          // Offline for a moment: try again next time.
+        }
+      }
+      if (!stopped) timer = window.setTimeout(poll, 10_000);
+    };
+    timer = window.setTimeout(poll, 10_000);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [key, slug, ref, status]);
+
+  const set = useCallback(
+    (next: ServerOrder | null) => {
+      setOrder(next);
+      if (next) storageSet(key, next);
+      else {
+        try {
+          window.localStorage.removeItem(key);
+        } catch {
+          // ignore
+        }
+      }
+    },
+    [key],
+  );
+  return [order, set] as const;
 }
 
 /** A random id for this visit, so views can be counted without knowing who anyone is. */
@@ -75,6 +226,7 @@ interface EventPayload {
   tb?: string | null;
   i?: string;
   sid?: string;
+  did?: string;
 }
 
 /** Fire-and-forget analytics (sendBeacon survives the page opening WhatsApp). */
@@ -92,6 +244,8 @@ export function track(slug: string, type: EventType, extra: { table?: string | n
 export interface LiveState {
   version: number;
   sold_out: string[];
+  /** This phone's loyalty card, when the restaurant has stamps. */
+  loyalty?: LoyaltyState | null;
 }
 
 /**
@@ -99,7 +253,7 @@ export interface LiveState {
  * and sold-out list. A menu served from the phone's cache is corrected
  * straight away.
  */
-export function useLiveMenu(slug: string, table: string | null, ready: boolean, onLive: (live: LiveState) => void) {
+export function useLiveMenu(slug: string, table: string | null, ready: boolean, onLive: (live: LiveState) => void, withLoyalty = false) {
   const sent = useRef(false);
   const callback = useRef(onLive);
   useEffect(() => {
@@ -109,14 +263,15 @@ export function useLiveMenu(slug: string, table: string | null, ready: boolean, 
   useEffect(() => {
     if (!ready || sent.current) return;
     sent.current = true;
-    const payload: EventPayload = { s: slug, t: "menu_view", tb: table, sid: sessionId() };
+    const did = withLoyalty ? deviceId() : null;
+    const payload: EventPayload = { s: slug, t: "menu_view", tb: table, sid: sessionId(), ...(did ? { did } : {}) };
     fetch("/api/e", { method: "POST", body: JSON.stringify(payload), headers: { "content-type": "text/plain" }, cache: "no-store" })
       .then((r) => (r.ok ? (r.json() as Promise<LiveState>) : null))
       .then((live) => {
         if (live && typeof live.version === "number") callback.current(live);
       })
       .catch(() => undefined);
-  }, [slug, table, ready]);
+  }, [slug, table, ready, withLoyalty]);
 }
 
 /** The table code from the QR link (?t=5), read once after hydration. */

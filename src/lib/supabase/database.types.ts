@@ -125,14 +125,14 @@ isOneToOne: false
                   ]
                 },"branches": {
                   Row: {
-                    "accepts_delivery": boolean,"accepts_dine_in": boolean,"accepts_takeaway": boolean,"address": string | null,"area": string | null,"created_at": string,"deleted_at": string | null,"delivery_note": string | null,"id": string,"is_main": boolean,"lat": number | null,"lng": number | null,"menu_id": string,"momo_airtel_code": string | null,"momo_airtel_name": string | null,"momo_mtn_code": string | null,"momo_mtn_name": string | null,"name": string | null,"opening_hours": NonNullable<Json>,"phone": string | null,"restaurant_id": string,"slug": string,"sort_order": number,"updated_at": string,"whatsapp": string | null
+                    "accepts_cash": boolean,"accepts_delivery": boolean,"accepts_dine_in": boolean,"accepts_takeaway": boolean,"address": string | null,"area": string | null,"created_at": string,"deleted_at": string | null,"delivery_note": string | null,"id": string,"is_main": boolean,"lat": number | null,"lng": number | null,"menu_id": string,"momo_airtel_code": string | null,"momo_airtel_name": string | null,"momo_mtn_code": string | null,"momo_mtn_name": string | null,"name": string | null,"opening_hours": NonNullable<Json>,"order_mode": string,"phone": string | null,"restaurant_id": string,"slug": string,"sort_order": number,"updated_at": string,"whatsapp": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepts_delivery"?: boolean,"accepts_dine_in"?: boolean,"accepts_takeaway"?: boolean,"address"?: string | null,"area"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"delivery_note"?: string | null,"id"?: string,"is_main"?: boolean,"lat"?: number | null,"lng"?: number | null,"menu_id": string,"momo_airtel_code"?: string | null,"momo_airtel_name"?: string | null,"momo_mtn_code"?: string | null,"momo_mtn_name"?: string | null,"name"?: string | null,"opening_hours"?: NonNullable<Json>,"phone"?: string | null,"restaurant_id": string,"slug": string,"sort_order"?: number,"updated_at"?: string,"whatsapp"?: string | null
+                    "accepts_cash"?: boolean,"accepts_delivery"?: boolean,"accepts_dine_in"?: boolean,"accepts_takeaway"?: boolean,"address"?: string | null,"area"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"delivery_note"?: string | null,"id"?: string,"is_main"?: boolean,"lat"?: number | null,"lng"?: number | null,"menu_id": string,"momo_airtel_code"?: string | null,"momo_airtel_name"?: string | null,"momo_mtn_code"?: string | null,"momo_mtn_name"?: string | null,"name"?: string | null,"opening_hours"?: NonNullable<Json>,"order_mode"?: string,"phone"?: string | null,"restaurant_id": string,"slug": string,"sort_order"?: number,"updated_at"?: string,"whatsapp"?: string | null
                   }
                   Update: {
-                    "accepts_delivery"?: boolean,"accepts_dine_in"?: boolean,"accepts_takeaway"?: boolean,"address"?: string | null,"area"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"delivery_note"?: string | null,"id"?: string,"is_main"?: boolean,"lat"?: number | null,"lng"?: number | null,"menu_id"?: string,"momo_airtel_code"?: string | null,"momo_airtel_name"?: string | null,"momo_mtn_code"?: string | null,"momo_mtn_name"?: string | null,"name"?: string | null,"opening_hours"?: NonNullable<Json>,"phone"?: string | null,"restaurant_id"?: string,"slug"?: string,"sort_order"?: number,"updated_at"?: string,"whatsapp"?: string | null
+                    "accepts_cash"?: boolean,"accepts_delivery"?: boolean,"accepts_dine_in"?: boolean,"accepts_takeaway"?: boolean,"address"?: string | null,"area"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"delivery_note"?: string | null,"id"?: string,"is_main"?: boolean,"lat"?: number | null,"lng"?: number | null,"menu_id"?: string,"momo_airtel_code"?: string | null,"momo_airtel_name"?: string | null,"momo_mtn_code"?: string | null,"momo_mtn_name"?: string | null,"name"?: string | null,"opening_hours"?: NonNullable<Json>,"order_mode"?: string,"phone"?: string | null,"restaurant_id"?: string,"slug"?: string,"sort_order"?: number,"updated_at"?: string,"whatsapp"?: string | null
                   }
                   Relationships: [
                     {
@@ -169,6 +169,38 @@ isOneToOne: false
       referencedColumns: ["id","restaurant_id"]
     },{
       foreignKeyName: "categories_restaurant_id_fkey"
+      columns: ["restaurant_id"]
+isOneToOne: false
+      referencedRelation: "restaurants"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"deals": {
+                  Row: {
+                    "branch_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"ends_at": string,"id": string,"item_id": string,"note": string | null,"note_lg": string | null,"percent_off": number,"restaurant_id": string,"starts_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "branch_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"ends_at": string,"id"?: string,"item_id": string,"note"?: string | null,"note_lg"?: string | null,"percent_off": number,"restaurant_id": string,"starts_at"?: string
+                  }
+                  Update: {
+                    "branch_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"ends_at"?: string,"id"?: string,"item_id"?: string,"note"?: string | null,"note_lg"?: string | null,"percent_off"?: number,"restaurant_id"?: string,"starts_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "deals_branch_id_restaurant_id_fkey"
+      columns: ["branch_id","restaurant_id"]
+isOneToOne: false
+      referencedRelation: "branches"
+      referencedColumns: ["id","restaurant_id"]
+    },{
+      foreignKeyName: "deals_item_id_restaurant_id_fkey"
+      columns: ["item_id","restaurant_id"]
+isOneToOne: false
+      referencedRelation: "items"
+      referencedColumns: ["id","restaurant_id"]
+    },{
+      foreignKeyName: "deals_restaurant_id_fkey"
       columns: ["restaurant_id"]
 isOneToOne: false
       referencedRelation: "restaurants"
@@ -311,6 +343,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"loyalty_cards": {
+                  Row: {
+                    "created_at": string,"device_hash": string,"last_stamp_on": string | null,"last_used_at": string | null,"restaurant_id": string,"rewards_used": number,"stamps": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"device_hash": string,"last_stamp_on"?: string | null,"last_used_at"?: string | null,"restaurant_id": string,"rewards_used"?: number,"stamps"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"device_hash"?: string,"last_stamp_on"?: string | null,"last_used_at"?: string | null,"restaurant_id"?: string,"rewards_used"?: number,"stamps"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "loyalty_cards_restaurant_id_fkey"
+      columns: ["restaurant_id"]
+isOneToOne: false
+      referencedRelation: "restaurants"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"memberships": {
                   Row: {
                     "branch_id": string | null,"created_at": string,"deleted_at": string | null,"id": string,"restaurant_id": string,"role": string,"updated_at": string,"user_id": string
@@ -377,6 +429,32 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "menus_restaurant_id_fkey"
+      columns: ["restaurant_id"]
+isOneToOne: false
+      referencedRelation: "restaurants"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"orders": {
+                  Row: {
+                    "address": string | null,"branch_id": string,"client_ref": string,"created_at": string,"customer_name": string | null,"id": string,"item_count": number,"lines": NonNullable<Json>,"local_date": string,"mode": string,"number": number | null,"order_type": string,"payment": string | null,"restaurant_id": string,"status": string,"status_at": string,"table_code": string | null,"table_label": string | null,"total_ugx": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"branch_id": string,"client_ref": string,"created_at"?: string,"customer_name"?: string | null,"id"?: string,"item_count": number,"lines": NonNullable<Json>,"local_date": string,"mode": string,"number"?: number | null,"order_type": string,"payment"?: string | null,"restaurant_id": string,"status": string,"status_at"?: string,"table_code"?: string | null,"table_label"?: string | null,"total_ugx": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string | null,"branch_id"?: string,"client_ref"?: string,"created_at"?: string,"customer_name"?: string | null,"id"?: string,"item_count"?: number,"lines"?: NonNullable<Json>,"local_date"?: string,"mode"?: string,"number"?: number | null,"order_type"?: string,"payment"?: string | null,"restaurant_id"?: string,"status"?: string,"status_at"?: string,"table_code"?: string | null,"table_label"?: string | null,"total_ugx"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "orders_branch_id_restaurant_id_fkey"
+      columns: ["branch_id","restaurant_id"]
+isOneToOne: false
+      referencedRelation: "branches"
+      referencedColumns: ["id","restaurant_id"]
+    },{
+      foreignKeyName: "orders_restaurant_id_fkey"
       columns: ["restaurant_id"]
 isOneToOne: false
       referencedRelation: "restaurants"
@@ -485,14 +563,14 @@ isOneToOne: false
                   ]
                 },"restaurants": {
                   Row: {
-                    "agent_id": string | null,"brand_color": string,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_demo": boolean,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
+                    "agent_id": string | null,"brand_color": string,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_demo": boolean,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"loyalty_enabled": boolean,"loyalty_min_ugx": number,"loyalty_reward": string | null,"loyalty_reward_lg": string | null,"loyalty_visits": number,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -715,14 +793,26 @@ isOneToOne: false
 "directory_search":
 { Args: { "p_area"?: string,"p_cuisine"?: string,"p_limit"?: number,"p_price"?: number,"p_query"?: string }; Returns: Json
                            },
+"directory_top":
+{ Args: { "p_area"?: string,"p_limit"?: number }; Returns: Json
+                           },
 "get_public_menu":
 { Args: { "p_slug": string }; Returns: Json
                            },
 "invitation_preview":
 { Args: { "p_token": string }; Returns: Json
                            },
+"loyalty_status":
+{ Args: { "p_device_hash": string,"p_slug": string }; Returns: Json
+                           },
+"order_status":
+{ Args: { "p_ref": string,"p_slug": string }; Returns: Json
+                           },
 "payment_rewards":
 { Args: { "p_payment_id": string,"p_restaurant_id": string }; Returns: Json
+                           },
+"place_order":
+{ Args: { "p": Json,"p_device_hash"?: string,"p_rate_key"?: string }; Returns: Json
                            },
 "prune_rate_limits":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -738,6 +828,9 @@ isOneToOne: false
                            },
 "record_payment":
 { Args: { "p": Json }; Returns: Json
+                           },
+"redeem_loyalty":
+{ Args: { "p_device_hash": string,"p_rate_key"?: string,"p_slug": string }; Returns: Json
                            },
 "remove_payment":
 { Args: { "p": Json }; Returns: undefined
@@ -759,6 +852,9 @@ isOneToOne: false
                            },
 "set_subscription":
 { Args: { "p": Json }; Returns: undefined
+                           },
+"start_deal":
+{ Args: { "p_branch_id": string,"p_ends_at": string,"p_item_id": string,"p_note"?: string,"p_note_lg"?: string,"p_percent": number,"p_restaurant_id": string }; Returns: string
                            },
 "submit_feedback":
 { Args: { "p_comment"?: string,"p_rate_key"?: string,"p_rating": number,"p_slug": string,"p_table"?: string }; Returns: string

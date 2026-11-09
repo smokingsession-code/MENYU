@@ -26,6 +26,7 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 7 | Admin: setup queue, agents, referrals, overview | Done |
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Done |
 | 9 | Online payments with Pesapal (MTN MoMo, Airtel Money, cards) | Done |
+| 10 | How diners order (show the waiter, WhatsApp, kitchen screen), pay with cash, loyalty stamps, Sell it today deals, today's orders, sales insights, deals and rankings in Menus near me | Done |
 
 ## Run it locally
 
@@ -231,6 +232,49 @@ their payment history. Staff never see billing.
   dishes and tables over 7 or 30 Kampala days. The charts are plain HTML
   rendered on the server, each with a table view. Crawlers and headless
   browsers are never counted.
+
+**How diners order** (Dashboard > How diners order, per branch). The order
+button on the menu does one of three things:
+
+- *Show to waiter* (Standard and Pro): a full-screen bill with the table
+  number, the dishes, the total and how the diner will pay. No WhatsApp
+  needed, so menus without a WhatsApp number can still take orders.
+- *Send on WhatsApp* (Standard and Pro): the original message, now with the
+  payment choice and any deal.
+- *Send to kitchen* (Pro): the order appears on Dashboard > Kitchen (New,
+  Cooking, Ready, refreshed every few seconds, with a beep for new orders)
+  for owners and staff; the diner's phone follows its order number until it
+  is ready. Delivery always goes on WhatsApp.
+
+Every order goes through `/api/orders` and `place_order`, which works out
+every price from the menu itself (the phone only sends dish, size and
+add-on ids), refuses dishes that are hidden, gone or sold out, numbers
+kitchen orders per branch per day, and rate-limits per network and phone.
+Sending the same cart again updates the same order (each cart has a random
+ref). The owner's home shows today's orders and their value, and Insights
+adds orders and sales per day and the most ordered dishes. These are orders
+placed from the menu, not money received, and the screens say so.
+
+*Pay with cash* sits beside the Mobile Money codes, and diners can say how
+they will pay. *Loyalty stamps* (Pro): owners choose the reward, the number
+of stamps and an optional smallest order. A phone gets at most one stamp a
+day when it sends or shows an order; the phone keeps a random id and only
+its hash is stored. The diner uses the reward on the waiter's screen, which
+then shows "Reward used" with the time.
+
+*Sell it today* (Pro, Dashboard > Sell it today): a discount on one dish
+until a time later today (at most 24 hours). Deals show at the top of the
+menu, on the dish itself and in Menus near me, and end by themselves. As
+with specials, the page never decides on the server whether a deal is on:
+both prices are in the page and a small style sheet, written by an inline
+script before the dishes are drawn (`src/lib/deals.ts`), shows the right
+one. Orders get the deal price for 15 minutes after the end, so a diner who
+added it just in time still gets it.
+
+*Top in {area} this week* in Menus near me ranks listed places by menu
+visitors and orders in the last 7 days (`directory_top`; an order counts as
+three visitors). Private ratings are never used, and only the order is
+shown, never the numbers.
 
 **Admin tools.** The admin home (`/admin`) is the overview: restaurants by
 status, paying restaurants, money collected this month and last, monthly

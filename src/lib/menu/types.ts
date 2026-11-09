@@ -49,6 +49,30 @@ export interface PublicSpecial {
   items: { id: string; name: string; name_lg: string | null; quantity: number }[];
 }
 
+/** A "Sell it today" deal: a discount on one dish until a time today. */
+export interface PublicDeal {
+  id: string;
+  item_id: string;
+  percent: number;
+  note: string | null;
+  note_lg: string | null;
+  /** ISO time; the page hides the deal from then on. */
+  ends_at: string;
+}
+
+export interface PublicLoyalty {
+  /** Stamps needed for the reward. */
+  visits: number;
+  reward: string;
+  reward_lg: string | null;
+  /** Orders below this total earn no stamp. */
+  min: number;
+}
+
+/** waiter: show the order to a waiter; whatsapp: send it; kitchen: the kitchen screen. */
+export type { OrderMode } from "@/lib/order";
+import type { OrderMode } from "@/lib/order";
+
 export interface PublicMenu {
   version: number;
   plan: PlanCode;
@@ -60,6 +84,8 @@ export interface PublicMenu {
     waiter_call: boolean;
     feedback: boolean;
     table_qr: boolean;
+    loyalty: boolean;
+    kitchen: boolean;
   };
   restaurant: {
     id: string;
@@ -89,12 +115,18 @@ export interface PublicMenu {
     accepts_takeaway: boolean;
     accepts_delivery: boolean;
     delivery_note: string | null;
+    /** How this branch takes orders now (already adjusted for the plan and WhatsApp number). */
+    order_mode: OrderMode;
+    accepts_cash: boolean;
     momo: { mtn_code: string | null; mtn_name: string | null; airtel_code: string | null; airtel_name: string | null } | null;
   };
   categories: PublicCategory[];
   /** Table code (from ?t=) to its name. Empty on plans without table QR codes. */
   tables: Record<string, string>;
   specials: PublicSpecial[];
+  /** Deals on when the menu was loaded, biggest discount first. */
+  deals: PublicDeal[];
+  loyalty: PublicLoyalty | null;
   has_luganda: boolean;
 }
 
