@@ -102,7 +102,8 @@
       "overview": "Overview",
       "requests": "Requests",
       "agents": "Agents",
-      "directory": "Directory"
+      "directory": "Directory",
+      "features": "Features"
     },
     "restaurants": {
       "title": "Restaurants",
@@ -367,7 +368,7 @@
     },
     "directory": {
       "title": "Directory",
-      "intro": "\"Menus near me\" lists approved restaurants on Standard and Pro. Keep it off until there are about 30 listings.",
+      "intro": "\"Menus near me\" lists approved restaurants on Standard and Pro. Owners can ask to be listed while it is switched on; this switch is the same as \"Menus near me directory\" on the Features page.",
       "switchOn": "Switch the directory on",
       "switchOff": "Switch the directory off",
       "isOn": "The directory is on.",
@@ -616,7 +617,8 @@
     "loyaltyUsed": "Reward used",
     "loyaltyUsedAt": "Used at {time}",
     "loyaltyKept": "Your stamps are kept on this phone.",
-    "loyaltyFailed": "Couldn't use the reward. Check your internet and try again."
+    "loyaltyFailed": "Couldn't use the reward. Check your internet and try again.",
+    "christmasGreeting": "Merry Christmas and happy holidays!"
   },
   "print": {
     "scanForMenu": "Scan for menu",
@@ -859,7 +861,17 @@
     },
     "descriptionLg": "Description in Luganda (optional)",
     "lugandaTitle": "In Luganda",
-    "lugandaHint": "Diners see a Luganda switch on your menu once something is written in Luganda."
+    "lugandaHint": "Diners see a Luganda switch on your menu once something is written in Luganda.",
+    "christmas": {
+      "title": "Christmas theme",
+      "body": "Give your menu a festive look for the season: a garland, a little snow and a Christmas greeting.",
+      "switchOn": "Switch on the Christmas theme",
+      "switchOff": "Switch off the Christmas theme",
+      "isOn": "Your menu shows the Christmas theme.",
+      "isOff": "The Christmas theme is off.",
+      "byMenyu": "The Menyu team has switched it on for your menu.",
+      "failed": "Could not save. Please try again."
+    }
   },
   "tables": {
     "title": "Tables and QR codes",
@@ -1377,7 +1389,9 @@
     "dealUntil": "until {time}",
     "topTitle": "Top in {area} this week",
     "topTitleAll": "Top this week",
-    "topHint": "By menu visits and orders on {brand} in the last 7 days. Ratings are private and never used."
+    "topHint": "By menu visits and orders on {brand} in the last 7 days. Ratings are private and never used.",
+    "unavailableTitle": "Menus near me",
+    "unavailable": "Menus near me isn't available yet. Ask the restaurant for their menu link or QR code."
   },
   "staff": {
     "title": "Staff",
@@ -1475,7 +1489,9 @@
       "min": "Enter an amount like 10,000.",
       "mode": "That way of ordering isn't available yet.",
       "failed": "Could not save. Please try again."
-    }
+    },
+    "noModes": "No way of ordering is switched on for your menu at the moment. Diners can still see the menu.",
+    "modeOffHint": "Your choice, \"{mode}\", is switched off at the moment, so the menu uses \"{fallback}\" until it's back."
   },
   "deals": {
     "title": "Sell it today",
@@ -1539,6 +1555,105 @@
     "proOnly": "The kitchen screen comes with the Pro plan.",
     "offline": "Can't reach Menyu. Trying again…",
     "sound": "Beep for new orders",
-    "failed": "Could not update the order. Please try again."
+    "failed": "Could not update the order. Please try again.",
+    "offSwitch": "Sending orders to the kitchen is switched off at the moment. Orders already here can still be moved along."
+  },
+  "switches": {
+    "title": "Features",
+    "intro": "Turn features on or off for every restaurant. Changes show straight away, with no redeploy. Turning a feature back on brings everything back as it was: nothing is deleted.",
+    "groups": {
+      "diner": "Diner",
+      "owner": "Owner",
+      "network": "Network"
+    },
+    "on": "On",
+    "off": "Off",
+    "count": "On for {active} of {total} restaurants",
+    "overrides": "Set per restaurant: {on} on, {off} off",
+    "plan": {
+      "standard": "Standard and Pro",
+      "pro": "Pro only"
+    },
+    "needs": "Also needs: {names}",
+    "saving": "Saving…",
+    "saved": "Saved. Menus and dashboards show it now.",
+    "failed": "Could not save. Please try again.",
+    "items": {
+      "specials": {
+        "name": "Specials and \"Sell it today\"",
+        "description": "Daily specials, happy hours and today-only deals at the top of the menu."
+      },
+      "order_waiter": {
+        "name": "Show to waiter",
+        "description": "Diners show their order to a waiter on their phone, with the table number. A way of ordering."
+      },
+      "order_whatsapp": {
+        "name": "Send on WhatsApp",
+        "description": "Diners send their order to the restaurant's WhatsApp. Delivery orders always use this. A way of ordering."
+      },
+      "order_kitchen": {
+        "name": "Send to kitchen",
+        "description": "Orders go straight to the kitchen screen, and diners see when theirs is ready. A way of ordering."
+      },
+      "payments": {
+        "name": "MoMo codes and Pay with cash",
+        "description": "Shows the restaurant's MTN and Airtel merchant codes and the cash option."
+      },
+      "waiter_call": {
+        "name": "Call waiter / Bring the bill",
+        "description": "Buttons that send the waiter a WhatsApp message with the table number."
+      },
+      "ratings": {
+        "name": "Ratings",
+        "description": "Diners rate their visit from 1 to 5 stars, with a private comment for the owner."
+      },
+      "loyalty": {
+        "name": "Loyalty points",
+        "description": "Diners collect a stamp each day they order and get a reward the owner chooses."
+      },
+      "christmas": {
+        "name": "Christmas theme",
+        "description": "A festive look for the menu: a garland, snow and a Christmas greeting. Owners switch it on for their own menu."
+      },
+      "menu_import": {
+        "name": "Menu from a photo",
+        "description": "Owners photograph their paper menu and Menyu types it up for them to check."
+      },
+      "insights": {
+        "name": "Insights",
+        "description": "Menu views, busy hours, most viewed dishes and orders, for owners."
+      },
+      "kitchen_screen": {
+        "name": "Kitchen screen",
+        "description": "New, Cooking and Ready orders on a phone or tablet in the kitchen."
+      },
+      "directory": {
+        "name": "Menus near me directory",
+        "description": "The public list of restaurant menus by area, food and price."
+      },
+      "rankings": {
+        "name": "Area rankings",
+        "description": "\"Top in your area this week\" in Menus near me, by menu visits and orders."
+      }
+    },
+    "restaurant": {
+      "title": "Features",
+      "intro": "Change a feature for this restaurant only. A feature works here only if it is on globally and not turned off here.",
+      "default": "Use global default",
+      "on": "On",
+      "off": "Off",
+      "active": "Working here",
+      "offGlobal": "Off for everyone (global switch)",
+      "offHere": "Off for this restaurant",
+      "notInPlan": "Not in their plan",
+      "needsOther": "Needs: {names}",
+      "ownerChoice": "Available: the owner hasn't switched it on",
+      "christmasOn": "On here shows the theme even if the owner hasn't switched it on.",
+      "onWaits": "Set to On, but it stays off while the global switch is off.",
+      "saved": "Saved for {restaurant}.",
+      "notListed": "Not listed: their Menus near me listing isn't approved"
+    },
+    "unavailableTitle": "Not available",
+    "unavailableBody": "This isn't available at the moment. Anything you set up is kept and comes back when it's switched on again."
   }
 }

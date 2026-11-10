@@ -59,12 +59,15 @@ export function ProfileForm({
   initial,
   s,
   photoStrings,
+  showPayments = true,
 }: {
   restaurantId: string;
   branchId: string;
   initial: ProfileValues;
   s: Strings;
   photoStrings: PhotoStrings;
+  /** The MoMo codes section (hidden while "MoMo codes and Pay with cash" is off; saved codes are kept). */
+  showPayments?: boolean;
 }) {
   const [v, setV] = useState({
     ...initial,
@@ -351,6 +354,7 @@ export function ProfileForm({
         ) : null}
       </Card>
 
+      {showPayments ? (
       <Card className="space-y-4">
         <div>
           <h2 className="text-lg font-extrabold">{s.momoTitle}</h2>
@@ -372,6 +376,7 @@ export function ProfileForm({
           </Field>
         </div>
       </Card>
+      ) : null}
 
       <div className="sticky bottom-20 z-10">
         <Button type="submit" size="lg" className="w-full shadow-lg" disabled={pending}>

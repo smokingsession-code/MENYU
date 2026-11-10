@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { SpecialsManager, type SpecialRow } from "@/components/dashboard/specials-manager";
 import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { featureBlock, getDashboardContext } from "@/lib/dashboard";
 import { DAY_KEYS } from "@/lib/hours";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -16,6 +17,7 @@ export default async function SpecialsPage({ params }: PageProps<"/dashboard/[re
   if (ctx.role === "staff") notFound();
   const base = `/dashboard/${restaurantId}`;
 
+  if (featureBlock(ctx, "specials") === "switch") return <NotAvailable title={t("specials.title")} backHref={base} />;
   if (!planHas(ctx.plan, "specials")) {
     return (
       <Card className="space-y-3">

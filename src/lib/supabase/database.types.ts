@@ -233,6 +233,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"feature_flags": {
+                  Row: {
+                    "enabled": boolean,"key": string,"launch_default": boolean,"revision": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "enabled": boolean,"key": string,"launch_default": boolean,"revision"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "enabled"?: boolean,"key"?: string,"launch_default"?: boolean,"revision"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"feedback": {
                   Row: {
                     "branch_id": string,"comment": string | null,"created_at": string,"deleted_at": string | null,"id": string,"rating": number,"read_at": string | null,"restaurant_id": string,"table_code": string | null,"updated_at": string
@@ -561,16 +575,42 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"restaurants": {
+                },"restaurant_features": {
                   Row: {
-                    "agent_id": string | null,"brand_color": string,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_demo": boolean,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"loyalty_enabled": boolean,"loyalty_min_ugx": number,"loyalty_reward": string | null,"loyalty_reward_lg": string | null,"loyalty_visits": number,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
+                    "enabled": boolean,"key": string,"restaurant_id": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "enabled": boolean,"key": string,"restaurant_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "agent_id"?: string | null,"brand_color"?: string,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                    "enabled"?: boolean,"key"?: string,"restaurant_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "restaurant_features_key_fkey"
+      columns: ["key"]
+isOneToOne: false
+      referencedRelation: "feature_flags"
+      referencedColumns: ["key"]
+    },{
+      foreignKeyName: "restaurant_features_restaurant_id_fkey"
+      columns: ["restaurant_id"]
+isOneToOne: false
+      referencedRelation: "restaurants"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"restaurants": {
+                  Row: {
+                    "agent_id": string | null,"brand_color": string,"christmas_theme": boolean,"content_version": number,"cover": Json | null,"created_at": string,"created_by": string | null,"cuisines": (string)[],"deleted_at": string | null,"description": string | null,"description_lg": string | null,"directory_status": string,"id": string,"is_demo": boolean,"is_featured": boolean,"is_suspended": boolean,"logo": Json | null,"loyalty_enabled": boolean,"loyalty_min_ugx": number,"loyalty_reward": string | null,"loyalty_reward_lg": string | null,"loyalty_visits": number,"menu_updated_at": string | null,"name": string,"price_range": number | null,"referral_code": string,"referred_by": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "agent_id"?: string | null,"brand_color"?: string,"christmas_theme"?: boolean,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name": string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "agent_id"?: string | null,"brand_color"?: string,"christmas_theme"?: boolean,"content_version"?: number,"cover"?: Json | null,"created_at"?: string,"created_by"?: string | null,"cuisines"?: (string)[],"deleted_at"?: string | null,"description"?: string | null,"description_lg"?: string | null,"directory_status"?: string,"id"?: string,"is_demo"?: boolean,"is_featured"?: boolean,"is_suspended"?: boolean,"logo"?: Json | null,"loyalty_enabled"?: boolean,"loyalty_min_ugx"?: number,"loyalty_reward"?: string | null,"loyalty_reward_lg"?: string | null,"loyalty_visits"?: number,"menu_updated_at"?: string | null,"name"?: string,"price_range"?: number | null,"referral_code"?: string,"referred_by"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -774,6 +814,9 @@ isOneToOne: false
                            },
 "add_tables":
 { Args: { "p_branch_id": string,"p_labels": (string)[] }; Returns: number
+                           },
+"admin_feature_summary":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "apply_billing_status":
 { Args: { "p_from": string,"p_restaurant_id": string,"p_to": string }; Returns: boolean

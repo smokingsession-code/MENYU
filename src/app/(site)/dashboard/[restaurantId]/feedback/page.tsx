@@ -2,10 +2,11 @@ import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { FeedbackList, Stars, type FeedbackRow } from "@/components/dashboard/feedback-list";
 import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { featureBlock, getDashboardContext } from "@/lib/dashboard";
 import { formatDateTime } from "@/lib/dates";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -14,6 +15,7 @@ export default async function FeedbackPage({ params }: PageProps<"/dashboard/[re
   const ctx = await getDashboardContext(restaurantId);
   const base = `/dashboard/${restaurantId}`;
 
+  if (featureBlock(ctx, "feedback") === "switch") return <NotAvailable title={t("feedback.title")} backHref={base} />;
   if (!planHas(ctx.plan, "feedback")) {
     return (
       <Card className="space-y-3">

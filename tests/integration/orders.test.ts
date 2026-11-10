@@ -295,7 +295,7 @@ describe("Menus near me: today's deal and top places this week", () => {
       await db.from("restaurants").update({ directory_status: "approved" }).eq("id", p.restaurant_id).throwOnError();
       await db.from("branches").update({ area }).eq("id", p.branch_id).throwOnError();
     }
-    await db.from("settings").upsert({ key: "directory_enabled", value: true }).throwOnError();
+    await db.from("feature_flags").update({ enabled: true }).in("key", ["directory", "rankings"]).throwOnError();
 
     // Place 0: 2 visitors. Place 1: 1 visitor and 1 order (= 4). Place 2: nothing.
     const view = (p: CreatedRestaurant, session: string) => ({ restaurant_id: p.restaurant_id, branch_id: p.branch_id, type: "menu_view", session_id: session });

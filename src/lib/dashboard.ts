@@ -2,12 +2,14 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { PLANS, planHas, type PlanCode } from "@/config/plans";
+import { planFeatureOn, type SwitchKey, type Switches } from "@/config/features";
+import { PLANS, planHas, type Feature, type PlanCode } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { effectivePlan } from "@/lib/billing/plan";
 import type { OpeningHours } from "@/lib/hours";
 import type { ImageDescriptor } from "@/lib/images/shared";
 import { branchCookie } from "@/lib/branch-cookie";
+import { loadRestaurantSwitches } from "@/lib/features";
 import { createClient } from "@/lib/supabase/server";
 
 export interface DashboardBranch {
@@ -65,6 +67,14 @@ export interface DashboardContext {
   isDemo: boolean;
   /** For the owner's "invite another restaurant" link. */
   referralCode: string;
+  /** The admin's feature switches as they apply to this restaurant. */
+  switches: Switches;
+  /** The global switches alone (to tell "off for everyone" from "off here"). */
+  globalSwitches: Switches;
+  /** The admin's overrides for this restaurant (true: On, false: Off). */
+  switchOverrides: Partial<Record<SwitchKey, boolean>>;
+  /** The owner's own Christmas theme choice. */
+  christmasTheme: boolean;
 }
 
 /**
@@ -80,7 +90,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, description, description_lg, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, order_mode, accepts_cash, menu_id, is_main, sort_order, deleted_at)",
+      "id, name, description, description_lg, brand_color, logo, cover, cuisines, price_range, is_demo, referral_code, christmas_theme, subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days), branches(id, slug, name, area, address, lat, lng, phone, whatsapp, momo_mtn_code, momo_mtn_name, momo_airtel_code, momo_airtel_name, opening_hours, accepts_dine_in, accepts_takeaway, accepts_delivery, delivery_note, order_mode, accepts_cash, menu_id, is_main, sort_order, deleted_at)",
     )
     .eq("id", restaurantId)
     .is("deleted_at", null)
@@ -134,6 +144,7 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
   }
 
   const admin = role === "admin";
+  const { switches, global, overrides } = await loadRestaurantSwitches(supabase, restaurantId);
   return {
     restaurantId,
     role,
@@ -154,8 +165,29 @@ export const getDashboardContext = cache(async (restaurantId: string, branchId?:
     canToggleSoldOut: admin || (role === "owner" && planHas(plan, "menu_editing")) || (role === "staff" && planHas(plan, "staff")),
     isDemo: r.is_demo,
     referralCode: r.referral_code,
+    switches,
+    globalSwitches: global,
+    switchOverrides: overrides,
+    christmasTheme: r.christmas_theme,
   };
 });
+
+/**
+ * The plan includes the feature and the admin's switch for it is on for
+ * this restaurant. Use this, not planHas, for anything the switches cover.
+ */
+export function hasFeature(ctx: Pick<DashboardContext, "plan" | "switches">, feature: Feature): boolean {
+  return planFeatureOn(ctx.plan, feature, ctx.switches);
+}
+
+/**
+ * Why a plan feature is missing: "plan" (an upgrade adds it) or "switch"
+ * (the admin has switched it off); null when it is there.
+ */
+export function featureBlock(ctx: Pick<DashboardContext, "plan" | "switches">, feature: Feature): "plan" | "switch" | null {
+  if (!planHas(ctx.plan, feature)) return "plan";
+  return hasFeature(ctx, feature) ? null : "switch";
+}
 
 export function itemLimit(plan: PlanCode): number | null {
   return PLANS[plan].limits.items;

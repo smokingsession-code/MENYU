@@ -31,6 +31,8 @@ async function editor(restaurantId: string) {
   const { user, role } = await requireRestaurantAccess(restaurantId, ["owner"]);
   const ctx = await getDashboardContext(restaurantId);
   if (!ctx.canEditMenu) return { error: t("import.errors.notAllowed") } as const;
+  // "Menu from a photo" switched off: owners cannot use it (the admin still can, for setup requests).
+  if (ctx.role !== "admin" && !ctx.switches.menu_import) return { error: t("switches.unavailableBody") } as const;
   return { user, role, ctx, error: null } as const;
 }
 

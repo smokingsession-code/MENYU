@@ -13,8 +13,9 @@ export default async function AdminDirectoryPage() {
   await requireAdmin();
   const db = createAdminClient();
   const [{ data: setting }, { data: restaurants }] = await Promise.all([
-    // Read the switch fresh: public pages use a cached copy.
-    db.from("settings").select("value").eq("key", "directory_enabled").maybeSingle(),
+    // Read the switch fresh: public pages use a cached copy. It is the same
+    // "Menus near me" switch as on Admin > Features.
+    db.from("feature_flags").select("enabled").eq("key", "directory").maybeSingle(),
     db
       .from("restaurants")
       .select("id, name, directory_status, is_featured, subscriptions(plan, status), branches(area, is_main, deleted_at)")
@@ -23,7 +24,7 @@ export default async function AdminDirectoryPage() {
       .eq("is_demo", false)
       .order("name"),
   ]);
-  const settings = { directoryEnabled: setting?.value === true };
+  const settings = { directoryEnabled: setting?.enabled === true };
   const s = Object.fromEntries(Object.entries(sectionStrings("en", "admin")).filter(([k]) => k.startsWith("directory.")).map(([k, v]) => [k.slice(10), v]));
   const rows = (restaurants ?? []).map((r) => {
     const plan = effectivePlan(r.subscriptions);

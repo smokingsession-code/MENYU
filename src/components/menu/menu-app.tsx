@@ -73,9 +73,11 @@ export function MenuApp({
   const tr: Translate = (en, lg) => (lang === "lg" && lg?.trim() ? lg : en);
 
   // The branch's mode already falls back when WhatsApp or the kitchen
-  // screen is not available, so any paid menu can take orders.
-  const canOrder = features.whatsapp_ordering;
-  const mode = branch.order_mode ?? (branch.whatsapp ? "whatsapp" : "waiter");
+  // screen is not available; it is null when the admin has switched every
+  // way of ordering off (then the menu is for reading only).
+  const mode = branch.order_mode === undefined ? (branch.whatsapp ? "whatsapp" : "waiter") : branch.order_mode;
+  const canOrder = features.whatsapp_ordering && mode !== null;
+  const christmas = features.christmas === true;
   const { code: tableCode, ready } = useTableCode();
   const tableLabel = tableCode ? (menu.tables[tableCode] ?? null) : null;
 
@@ -157,7 +159,8 @@ export function MenuApp({
   }, [menu.categories, query]);
   const resultCount = sections.reduce((n, c) => n + c.items.length, 0);
 
-  const orderTypes = useMemo(() => orderTypesFor(branch), [branch]);
+  const whatsappOrders = features.order_whatsapp ?? Boolean(branch.whatsapp);
+  const orderTypes = useMemo(() => orderTypesFor(branch, whatsappOrders), [branch, whatsappOrders]);
 
   const brand = restaurant.brand_color || "#1E5B3A";
   const style = {
@@ -213,6 +216,8 @@ export function MenuApp({
 
   return (
     <div style={style} className="mx-auto flex min-h-screen w-full max-w-2xl flex-col bg-paper">
+      {/* Christmas theme: a garland along the top (decoration only). */}
+      {christmas ? <div aria-hidden="true" className="xmas-garland h-2" /> : null}
       {/* Before anything is drawn: which deals are still on (see lib/deals). */}
       {deals.length ? <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: dealsScript(deals) }} /> : null}
       {restaurant.is_demo ? (
@@ -221,20 +226,23 @@ export function MenuApp({
 
       <header className="bg-card pb-4">
         {restaurant.cover ? (
-          <img
-            src={imageUrl(restaurant.cover, pickWidth(restaurant.cover, 360))}
-            srcSet={imageSrcSet(restaurant.cover)}
-            sizes="(min-width: 672px) 672px, 100vw"
-            width={restaurant.cover.w}
-            height={restaurant.cover.h}
-            alt=""
-            fetchPriority="high"
-            decoding="async"
-            className="aspect-[16/7] w-full object-cover"
-            style={{ backgroundColor: restaurant.cover.color }}
-          />
+          <div className="relative">
+            <img
+              src={imageUrl(restaurant.cover, pickWidth(restaurant.cover, 360))}
+              srcSet={imageSrcSet(restaurant.cover)}
+              sizes="(min-width: 672px) 672px, 100vw"
+              width={restaurant.cover.w}
+              height={restaurant.cover.h}
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+              className="aspect-[16/7] w-full object-cover"
+              style={{ backgroundColor: restaurant.cover.color }}
+            />
+            {christmas ? <div aria-hidden="true" className="xmas-snow pointer-events-none absolute inset-0" /> : null}
+          </div>
         ) : (
-          <div className="h-20" style={{ background: "var(--brand)" }} />
+          <div className={`h-20 ${christmas ? "xmas-snow" : ""}`} style={{ backgroundColor: "var(--brand)" }} />
         )}
         <div className="px-4">
           <div className="-mt-9 flex items-end gap-3">
@@ -260,6 +268,12 @@ export function MenuApp({
             )}
           </div>
           <h1 className="mt-2 text-[1.7rem] font-extrabold leading-tight">{restaurant.name}</h1>
+          {christmas ? (
+            <p className="xmas-greeting mt-1 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-extrabold">
+              <span aria-hidden="true" className="text-accent">★</span>
+              {s.christmasGreeting}
+            </p>
+          ) : null}
           <p className="text-base text-muted">{[branch.area, ...restaurant.cuisines.slice(0, 2)].filter(Boolean).join(" · ")}</p>
           <p className="mt-1 min-h-6 text-base" aria-live="polite">
             <OpenLine status={status} s={s} />
@@ -532,7 +546,7 @@ export function MenuApp({
           setNote={cart.setNote}
           clear={cart.clear}
           orderTypes={orderTypes}
-          mode={mode}
+          mode={mode ?? "waiter"}
           tableFromQr={tableLabel}
           tableCode={tableLabel ? tableCode : null}
           whatsapp={branch.whatsapp}

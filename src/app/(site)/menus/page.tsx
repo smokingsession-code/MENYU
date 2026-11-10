@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Alert, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,18 @@ async function Directory({ searchParams }: { searchParams: PageProps<"/menus">["
   });
   const result = (data ?? { enabled: false, results: [], areas: [] }) as unknown as { enabled: boolean; results: Listing[]; areas: { area: string; count: number }[] };
   const preview = !result.enabled;
-  if (preview && result.results.length === 0 && result.areas.length === 0) notFound();
+  if (preview && result.results.length === 0 && result.areas.length === 0) {
+    // Switched off (Admin > Features): a friendly note rather than an error page.
+    return (
+      <div className="space-y-3 rounded-[var(--radius-card)] border border-line bg-card p-6">
+        <h1 className="text-3xl font-extrabold">{t("directory.unavailableTitle")}</h1>
+        <p className="text-lg">{t("directory.unavailable")}</p>
+        <Link href="/" className="inline-flex min-h-11 items-center font-bold text-brand underline">
+          {t("common.back")}
+        </Link>
+      </div>
+    );
+  }
 
   await connection();
   const now = new Date();

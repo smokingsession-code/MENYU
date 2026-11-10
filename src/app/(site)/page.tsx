@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BRAND } from "@/config/brand";
 import { DEMO_SLUG } from "@/config/demo";
+import { visiblePlanLines } from "@/config/features";
 import { PLANS, type PlanCode } from "@/config/plans";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { publicEnv } from "@/lib/env";
@@ -36,10 +37,8 @@ export default async function Home() {
   const settings = await getSiteSettings();
   const chat = settings.supportWhatsapp ? waLink(settings.supportWhatsapp, t("home.chatMessage")) : null;
   const features = sectionStrings("en", "billing");
-  const featureList = (code: PlanCode) =>
-    Object.entries(features)
-      .filter(([key]) => key.startsWith(`features.${code}.`))
-      .map(([, text]) => text);
+  // Features the admin has switched off are not advertised.
+  const featureList = (code: PlanCode) => visiblePlanLines(features, code, settings.switches);
 
   return (
     <main className="flex-1">

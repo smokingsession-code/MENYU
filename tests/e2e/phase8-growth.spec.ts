@@ -38,28 +38,35 @@ test.describe("phase 8: marketing site, directory, branches, staff and photo aut
     const db = service();
     const { data: cat } = await db.from("categories").select("id, menu_id").eq("restaurant_id", fixture.restaurantId).limit(1).single();
     await db.from("items").insert({ restaurant_id: fixture.restaurantId, menu_id: cat!.menu_id, category_id: cat!.id, name: "Rolex deluxe", price_ugx: 6000, sort_order: 9, description: null });
-    await db.from("settings").upsert({ key: "directory_enabled", value: false });
+    await db.from("feature_flags").update({ enabled: false }).eq("key", "directory");
 
-    // The owner asks to be listed.
+    // While it is off, diners get a friendly note and owners see nothing about it.
+    const diner = await browser.newPage({ viewport: { width: 360, height: 740 }, isMobile: true });
+    await diner.goto("/menus");
+    await expect(diner.getByText("Menus near me isn't available yet.", { exact: false })).toBeVisible();
     const owner = await createMember(fixture.restaurantId);
+    await signIn(page, owner);
+    await page.goto(`/dashboard/${fixture.restaurantId}/profile`);
+    await expect(page.getByRole("heading", { name: "Profile" }).or(page.getByRole("heading", { level: 1 }))).toBeVisible();
+    await expect(page.getByRole("button", { name: "List my restaurant" })).toHaveCount(0);
+
+    // The admin switches the directory on; the owner asks to be listed; the admin approves.
+    await page.context().clearCookies();
+    await signIn(page, ADMIN);
+    await page.goto("/admin/directory");
+    await page.getByRole("button", { name: "Switch the directory on" }).click();
+    await expect(page.getByText("The directory is on.")).toBeVisible();
+    await page.context().clearCookies();
     await signIn(page, owner);
     await page.goto(`/dashboard/${fixture.restaurantId}/profile`);
     await page.getByRole("button", { name: "List my restaurant" }).click();
     await expect(page.getByText("Waiting for the Menyu team to approve.")).toBeVisible();
-
-    const diner = await browser.newPage({ viewport: { width: 360, height: 740 }, isMobile: true });
-    await diner.goto("/menus");
-    await expect(diner.getByText("Page not found")).toBeVisible();
-
-    // The admin approves it and switches the directory on.
     await page.context().clearCookies();
     await signIn(page, ADMIN);
     await page.goto("/admin/directory");
     const pending = page.getByRole("listitem").filter({ has: page.getByRole("link", { name: fixture.name }) });
     await pending.getByRole("button", { name: "Approve" }).click();
     await expect(page.getByRole("listitem").filter({ has: page.getByRole("link", { name: fixture.name }) }).getByRole("button", { name: "Remove" })).toBeVisible();
-    await page.getByRole("button", { name: "Switch the directory on" }).click();
-    await expect(page.getByText("The directory is on.")).toBeVisible();
 
     await diner.goto("/menus?q=rolex");
     await expect(diner.getByRole("heading", { name: "Menus near me" })).toBeVisible();

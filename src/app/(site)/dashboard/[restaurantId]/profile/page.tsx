@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Alert, Card } from "@/components/ui/card";
+import { ChristmasTheme } from "@/components/dashboard/christmas-theme";
 import { DirectoryListing } from "@/components/dashboard/directory-listing";
 import { planHas } from "@/config/plans";
 import { createClient } from "@/lib/supabase/server";
@@ -63,9 +64,18 @@ export default async function ProfilePage({ params }: PageProps<"/dashboard/[res
           }}
           s={{ ...sectionStrings("en", "profile"), optional: t("common.optional"), saving: t("common.saving") }}
           photoStrings={photoStrings("en", { enhance: planHas(ctx.plan, "photo_enhance") })}
+          showPayments={ctx.switches.payments}
         />
       )}
-          {ctx.role !== "staff" ? (
+      {ctx.canManage && ctx.switches.christmas ? (
+        <ChristmasTheme
+          restaurantId={restaurantId}
+          initial={ctx.christmasTheme}
+          byMenyu={ctx.switchOverrides.christmas === true}
+          s={sectionStrings("en", "profile")}
+        />
+      ) : null}
+      {ctx.role !== "staff" && ctx.switches.directory ? (
         <Card className="space-y-2">
           <h2 className="text-lg font-extrabold">{t("profile.directory.title")}</h2>
           {planHas(ctx.plan, "directory_listing") ? (

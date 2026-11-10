@@ -27,6 +27,7 @@ The product name is a placeholder: change it in `src/config/brand.ts`.
 | 8 | Directory, marketing site, Luganda, photo auto-fix, staff, branches | Done |
 | 9 | Online payments with Pesapal (MTN MoMo, Airtel Money, cards) | Done |
 | 10 | How diners order (show the waiter, WhatsApp, kitchen screen), pay with cash, loyalty stamps, Sell it today deals, today's orders, sales insights, deals and rankings in Menus near me | Done |
+| 11 | Feature switches: Admin > Features (global) and per restaurant, Christmas theme | Done |
 
 ## Run it locally
 
@@ -275,6 +276,26 @@ added it just in time still gets it.
 visitors and orders in the last 7 days (`directory_top`; an order counts as
 three visitors). Private ratings are never used, and only the order is
 shown, never the numbers.
+
+**Feature switches** (Admin > Features). One switch per feature for the
+whole app (Diner: specials and Sell it today, each way of ordering, MoMo
+codes and cash, call the waiter, ratings, loyalty, Christmas theme; Owner:
+menu from a photo, insights, kitchen screen; Network: Menus near me, area
+rankings), each with "On for X of Y restaurants". Each restaurant's admin
+page has a Features section to set a switch On, Off or "Use global
+default" for that restaurant only. A feature works for a restaurant only
+if it is on globally AND not turned off there (and its plan includes it),
+so the global switch is always a kill switch: "On" for one restaurant
+cannot beat a global Off. The switches live in `feature_flags` and
+`restaurant_features` (row-level security: only the admin changes them)
+and the database enforces them too: `private.plan_allows` checks the
+feature's switch, so everything that already checked the plan (specials,
+feedback, loyalty, insights, the kitchen, the directory) follows them. A
+change expires every cached menu at once and moves each menu's version, so
+phones refresh; nothing is deleted, so switching a feature back on restores
+it exactly. Switched-off features disappear from menus, dashboards, price
+lists and the marketing site; their pages show a short "not available"
+note. Keys and launch defaults are in `src/config/features.ts`.
 
 **Admin tools.** The admin home (`/admin`) is the overview: restaurants by
 status, paying restaurants, money collected this month and last, monthly

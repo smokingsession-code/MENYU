@@ -25,6 +25,11 @@ export function OrderingForm({
   canKitchen,
   canLoyalty,
   loyaltyStats,
+  modes,
+  noModes,
+  fallbackNote,
+  showPayments,
+  showLoyalty,
   s,
 }: {
   restaurantId: string;
@@ -37,6 +42,14 @@ export function OrderingForm({
   canKitchen: boolean;
   canLoyalty: boolean;
   loyaltyStats: string | null;
+  /** Ways of ordering the admin has switched on (the others are not shown). */
+  modes: Record<Mode, boolean>;
+  /** Shown instead of the choices when none is switched on. */
+  noModes: string | null;
+  /** The saved choice is switched off: what the menu uses meanwhile. */
+  fallbackNote: string | null;
+  showPayments: boolean;
+  showLoyalty: boolean;
   s: Strings;
 }) {
   const [mode, setMode] = useState<Mode>(initial.mode);
@@ -50,7 +63,7 @@ export function OrderingForm({
   const [pending, start] = useTransition();
   const base = `/dashboard/${restaurantId}`;
 
-  const modes: { mode: Mode; disabled: boolean; hint: string; blocked?: React.ReactNode }[] = [
+  const choices: { mode: Mode; disabled: boolean; hint: string; blocked?: React.ReactNode }[] = [
     { mode: "waiter", disabled: false, hint: s["modeHints.waiter"] },
     {
       mode: "whatsapp",
@@ -97,10 +110,15 @@ export function OrderingForm({
 
   return (
     <div className="space-y-4">
+      {noModes ? (
+        <Card>
+          <p>{noModes}</p>
+        </Card>
+      ) : Object.values(modes).some(Boolean) ? (
       <Card className="space-y-3">
         <h2 className="text-lg font-extrabold">{s.modeTitle}</h2>
         <div role="radiogroup" aria-label={s.modeTitle} className="space-y-2">
-          {modes.map((m) => (
+          {choices.filter((m) => modes[m.mode]).map((m) => (
             <label
               key={m.mode}
               className={`flex cursor-pointer gap-3 rounded-xl border-2 p-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft ${m.disabled ? "cursor-not-allowed opacity-70" : "border-line"}`}
@@ -123,9 +141,12 @@ export function OrderingForm({
           ))}
         </div>
         {err("mode") ? <p role="alert" className="text-sm font-semibold text-danger">{err("mode")}</p> : null}
-        <p className="text-sm text-muted">{s.deliveryNote}</p>
+        {fallbackNote ? <p className="text-sm font-bold text-accent-dark">{fallbackNote}</p> : null}
+        {modes.whatsapp ? <p className="text-sm text-muted">{s.deliveryNote}</p> : null}
       </Card>
+      ) : null}
 
+      {showPayments ? (
       <Card className="space-y-3">
         <h2 className="text-lg font-extrabold">{s.payTitle}</h2>
         <label className="flex min-h-11 items-start gap-3">
@@ -142,7 +163,9 @@ export function OrderingForm({
           </Link>
         </p>
       </Card>
+      ) : null}
 
+      {showLoyalty ? (
       <Card className="space-y-3">
         <h2 className="text-lg font-extrabold">{s.loyaltyTitle}</h2>
         <p className="text-muted">{s.loyaltyIntro}</p>
@@ -205,6 +228,7 @@ export function OrderingForm({
           </p>
         )}
       </Card>
+      ) : null}
 
       {result ? <Alert tone={result.ok ? "success" : "error"}>{result.text}</Alert> : null}
       <Button onClick={save} disabled={pending} size="lg" className="w-full sm:w-auto">

@@ -13,6 +13,7 @@ import { canRetry, expireStaleImports, type StoredFile } from "@/lib/import/proc
 import { extractionZ } from "@/lib/import/schema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -41,6 +42,7 @@ export default async function ImportReviewPage({ params }: PageProps<"/dashboard
   const ctx = await getDashboardContext(restaurantId);
   if (ctx.role === "staff") notFound();
   const base = `/dashboard/${restaurantId}`;
+  if (ctx.role !== "admin" && !ctx.switches.menu_import) return <NotAvailable title={t("import.title")} backHref={base} />;
 
   await expireStaleImports(restaurantId);
   const supabase = await createClient();

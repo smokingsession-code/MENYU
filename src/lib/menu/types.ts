@@ -86,6 +86,12 @@ export interface PublicMenu {
     table_qr: boolean;
     loyalty: boolean;
     kitchen: boolean;
+    /** Each way of ordering as switched on for this restaurant (Admin > Features). Missing on menus cached before the switches. */
+    order_waiter?: boolean;
+    order_whatsapp?: boolean;
+    order_kitchen?: boolean;
+    /** The Christmas theme is on for this menu. */
+    christmas?: boolean;
   };
   restaurant: {
     id: string;
@@ -115,8 +121,8 @@ export interface PublicMenu {
     accepts_takeaway: boolean;
     accepts_delivery: boolean;
     delivery_note: string | null;
-    /** How this branch takes orders now (already adjusted for the plan and WhatsApp number). */
-    order_mode: OrderMode;
+    /** How this branch takes orders now (already adjusted for the plan, switches and WhatsApp number); null when no way of ordering is on. */
+    order_mode: OrderMode | null;
     accepts_cash: boolean;
     momo: { mtn_code: string | null; mtn_name: string | null; airtel_code: string | null; airtel_name: string | null } | null;
   };

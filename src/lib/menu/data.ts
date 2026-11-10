@@ -16,6 +16,9 @@ export function restaurantMenuTag(restaurantId: string) {
   return `menu-r:${restaurantId}`;
 }
 
+/** On every menu: a global feature switch change expires them all at once. */
+export const ALL_MENUS_TAG = "menus";
+
 /**
  * The public menu for a branch slug, cached and shared by every diner.
  * Owner edits expire it at once through its tag (see expireMenu); the
@@ -23,7 +26,7 @@ export function restaurantMenuTag(restaurantId: string) {
  */
 export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   "use cache";
-  cacheTag(menuTag(slug));
+  cacheTag(menuTag(slug), ALL_MENUS_TAG);
   cacheLife({ stale: 60, revalidate: 300, expire: 86_400 });
 
   if (!SLUG_PATTERN.test(slug) || slug.length > 80) return null;

@@ -13,7 +13,9 @@ export default async function StartPage({ params }: PageProps<"/dashboard/[resta
   const ctx = await getDashboardContext(restaurantId);
   const base = `/dashboard/${restaurantId}`;
   const choices = [
-    { href: `${base}/import`, title: t("onboarding.photo"), hint: t("onboarding.photoHint"), primary: true },
+    ...(ctx.role === "admin" || ctx.switches.menu_import
+      ? [{ href: `${base}/import`, title: t("onboarding.photo"), hint: t("onboarding.photoHint"), primary: true }]
+      : []),
     { href: `${base}/menu`, title: t("onboarding.type"), hint: t("onboarding.typeHint") },
     { href: `${base}/request?kind=setup`, title: t("onboarding.sendUs"), hint: t("onboarding.sendUsHint") },
   ];

@@ -136,17 +136,20 @@ export function orderAction(mode: OrderMode, type: OrderType): OrderMode {
   return type === "delivery" ? "whatsapp" : mode;
 }
 
-/** The order types a branch offers. Delivery needs WhatsApp. */
-export function orderTypesFor(branch: {
-  accepts_dine_in: boolean;
-  accepts_takeaway: boolean;
-  accepts_delivery: boolean;
-  whatsapp: string | null;
-}): OrderType[] {
+/** The order types a branch offers. Delivery needs WhatsApp (a number, and "Send on WhatsApp" switched on). */
+export function orderTypesFor(
+  branch: {
+    accepts_dine_in: boolean;
+    accepts_takeaway: boolean;
+    accepts_delivery: boolean;
+    whatsapp: string | null;
+  },
+  whatsappOrders = true,
+): OrderType[] {
   const types: OrderType[] = [];
   if (branch.accepts_dine_in) types.push("dine_in");
   if (branch.accepts_takeaway) types.push("takeaway");
-  if (branch.accepts_delivery && branch.whatsapp) types.push("delivery");
+  if (branch.accepts_delivery && branch.whatsapp && whatsappOrders) types.push("delivery");
   if (types.length === 0) types.push("dine_in");
   return types;
 }

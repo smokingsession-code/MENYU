@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { planHas } from "@/config/plans";
+import { hasFeature } from "@/lib/dashboard";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { getDashboardContext } from "@/lib/dashboard";
 import { getTranslator } from "@/lib/i18n";
@@ -37,10 +38,18 @@ export async function saveOrderingAction(restaurantId: string, branchId: string,
   const v = parsed.data;
   const ctx = await getDashboardContext(restaurantId, branchId);
   if (!ctx.canManage || ctx.branch.id !== branchId) return { ok: false, error: t("ordering.errors.failed") };
-  if ((v.mode === "kitchen" && !planHas(ctx.plan, "kitchen")) || (v.mode === "whatsapp" && !ctx.branch.whatsapp)) {
+  // A new choice must be switched on and possible. The saved choice may be
+  // kept while it is switched off, so it comes back when it is on again.
+  const sw = ctx.switches;
+  const allowed =
+    v.mode === ctx.branch.orderMode ||
+    (v.mode === "waiter" && sw.order_waiter) ||
+    (v.mode === "whatsapp" && sw.order_whatsapp && Boolean(ctx.branch.whatsapp)) ||
+    (v.mode === "kitchen" && sw.order_kitchen && hasFeature(ctx, "kitchen"));
+  if (!allowed || !planHas(ctx.plan, "whatsapp_ordering")) {
     return { ok: false, field: "mode", error: t("ordering.errors.mode") };
   }
-  const loyalty = planHas(ctx.plan, "loyalty");
+  const loyalty = hasFeature(ctx, "loyalty");
   if (loyalty && v.loyaltyEnabled && !v.loyaltyReward) return { ok: false, field: "loyaltyReward", error: t("ordering.errors.reward") };
 
   const supabase = await createClient();

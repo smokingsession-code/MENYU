@@ -16,7 +16,7 @@ async function addMenu(r: CreatedRestaurant, dish: string) {
 }
 
 async function setDirectory(enabled: boolean) {
-  const { error } = await serviceClient().from("settings").upsert({ key: "directory_enabled", value: enabled });
+  const { error } = await serviceClient().from("feature_flags").update({ enabled }).eq("key", "directory");
   if (error) throw error;
 }
 

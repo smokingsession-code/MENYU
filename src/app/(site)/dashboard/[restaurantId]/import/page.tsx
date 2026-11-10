@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Alert, Badge, Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { ImportStart } from "@/components/dashboard/import-start";
+import { NotAvailable } from "@/components/dashboard/not-available";
 import { getDashboardContext } from "@/lib/dashboard";
 import { formatDateTime } from "@/lib/dates";
 import { getTranslator, sectionStrings, type MessageKey } from "@/lib/i18n";
@@ -24,6 +25,15 @@ export default async function ImportPage({ params }: PageProps<"/dashboard/[rest
   if (ctx.role === "staff") notFound();
   const base = `/dashboard/${restaurantId}`;
 
+  if (ctx.role !== "admin" && !ctx.switches.menu_import) {
+    return (
+      <NotAvailable title={t("import.title")} backHref={base}>
+        <ButtonLink href={`${base}/request?kind=setup`} className="w-full sm:w-auto">
+          {t("onboarding.sendUs")}
+        </ButtonLink>
+      </NotAvailable>
+    );
+  }
   if (!ctx.canEditMenu) {
     return (
       <Card className="space-y-3">

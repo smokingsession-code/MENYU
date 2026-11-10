@@ -4,7 +4,10 @@ import { Badge, Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { PaymentList, PlanForm, RecordPaymentForm, ReminderButton } from "@/components/admin/billing-forms";
+import { RestaurantFeatures } from "@/components/admin/restaurant-features";
 import { PLANS } from "@/config/plans";
+import { effectivePlan } from "@/lib/billing/plan";
+import { loadRestaurantSwitches } from "@/lib/features";
 import { reminderMessage } from "@/lib/billing/reminder";
 import { billingSummary, reminderKind } from "@/lib/billing/status";
 import { formatDate } from "@/lib/dates";
@@ -29,7 +32,7 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
   const { data: r } = await supabase
     .from("restaurants")
     .select(
-      "id, name, created_at, menu_updated_at, agents(name, code), subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days, setup_fee_ugx, last_reminder_at, updated_at), branches(id, slug, area, whatsapp, is_main, deleted_at), memberships(id, role, user_id, deleted_at), invitations(id, phone, email, role, expires_at, accepted_at, deleted_at)",
+      "id, name, created_at, menu_updated_at, directory_status, christmas_theme, agents(name, code), subscriptions(plan, status, billing_interval, trial_ends_at, paid_until, grace_days, setup_fee_ugx, last_reminder_at, updated_at), branches(id, slug, area, whatsapp, is_main, deleted_at), memberships(id, role, user_id, deleted_at), invitations(id, phone, email, role, expires_at, accepted_at, deleted_at)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -44,7 +47,7 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
   const pending = r.invitations.filter((i) => !i.accepted_at && !i.deleted_at && new Date(i.expires_at) > new Date());
 
   const memberIds = members.map((m) => m.user_id);
-  const [{ data: profiles }, { data: payments }, settings] = await Promise.all([
+  const [{ data: profiles }, { data: payments }, settings, switches] = await Promise.all([
     memberIds.length ? supabase.from("profiles").select("id, full_name, phone, email").in("id", memberIds) : Promise.resolve({ data: [] }),
     supabase
       .from("payments")
@@ -55,6 +58,7 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
       .order("paid_at", { ascending: false })
       .limit(50),
     getBillingSettings(),
+    loadRestaurantSwitches(supabase, r.id),
   ]);
   const summary = sub ? billingSummary(sub, new Date(), branches.length) : null;
   const ownerProfile = profiles?.find((p) => members.some((m) => m.role === "owner" && m.user_id === p.id));
@@ -179,6 +183,16 @@ export default async function AdminRestaurantPage({ params }: PageProps<"/admin/
           </>
         ) : null}
       </Card>
+
+      <RestaurantFeatures
+        restaurantId={r.id}
+        restaurantName={r.name}
+        plan={sub ? effectivePlan(sub) : "free"}
+        global={switches.global}
+        overrides={switches.overrides}
+        christmasTheme={r.christmas_theme}
+        listed={r.directory_status === "approved"}
+      />
 
       <Card className="space-y-3">
         <h2 className="text-lg font-extrabold">{t("admin.detail.newInvite")}</h2>

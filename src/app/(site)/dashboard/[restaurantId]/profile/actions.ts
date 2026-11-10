@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { requireRestaurantAccess } from "@/lib/auth";
+import { getDashboardContext } from "@/lib/dashboard";
 import { normaliseHours } from "@/lib/hours";
 import { getTranslator } from "@/lib/i18n";
 import { expireMenu } from "@/lib/menu/expire";
@@ -112,4 +113,21 @@ export async function setDirectoryListingAction(restaurantId: string, listed: bo
   expireMenu(restaurantId);
   refresh();
   return { ok: true, status: data as string };
+}
+
+/** The owner's Christmas theme switch (only while the admin's switch allows it). */
+export async function setChristmasThemeAction(restaurantId: string, on: boolean): Promise<{ ok: boolean }> {
+  await requireRestaurantAccess(restaurantId, ["owner"]);
+  if (typeof on !== "boolean") return { ok: false };
+  const ctx = await getDashboardContext(restaurantId);
+  if (!ctx.canManage || !ctx.switches.christmas) return { ok: false };
+  const supabase = await createClient();
+  const { error } = await supabase.from("restaurants").update({ christmas_theme: on }).eq("id", restaurantId);
+  if (error) {
+    console.error("[profile] christmas theme failed", { message: error.message });
+    return { ok: false };
+  }
+  expireMenu(restaurantId);
+  refresh();
+  return { ok: true };
 }

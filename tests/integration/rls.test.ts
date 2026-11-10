@@ -18,7 +18,7 @@ const PRIVATE_TABLES = [
   "invitations", "categories", "items", "item_options", "sold_out", "tables", "specials",
   "special_items", "menu_imports", "feedback", "events", "setup_requests", "subscriptions",
   "payments", "agent_commissions", "agent_payouts", "referrals", "rate_limits", "audit_log",
-  "deals", "orders", "loyalty_cards",
+  "deals", "orders", "loyalty_cards", "feature_flags", "restaurant_features",
 ] as const;
 
 const DB_URL = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";

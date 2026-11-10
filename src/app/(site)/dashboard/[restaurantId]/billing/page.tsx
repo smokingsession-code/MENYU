@@ -3,6 +3,7 @@ import { PayNowButton } from "@/components/dashboard/pay-now";
 import { activeProvider } from "@/lib/billing/providers";
 import { ButtonAnchor } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
+import { visiblePlanLines } from "@/config/features";
 import { PLANS, type PlanCode } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
 import { hasMomo, paidMessage } from "@/lib/billing/reminder";
@@ -67,10 +68,8 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
   const online = activeProvider().collects;
   const support = settings.supportWhatsapp;
   const features = sectionStrings("en", "billing");
-  const featureList = (plan: PlanCode) =>
-    Object.entries(features)
-      .filter(([key]) => key.startsWith(`features.${plan}.`))
-      .map(([, text]) => text);
+  // Features the admin has switched off are not listed.
+  const featureList = (plan: PlanCode) => visiblePlanLines(features, plan, ctx.switches);
 
   return (
     <div className="space-y-5">

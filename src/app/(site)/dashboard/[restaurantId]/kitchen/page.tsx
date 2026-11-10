@@ -3,9 +3,10 @@ import { KitchenBoard } from "@/components/dashboard/kitchen-board";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert, Card } from "@/components/ui/card";
 import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { featureBlock, getDashboardContext } from "@/lib/dashboard";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { kitchenBoard } from "@/lib/kitchen";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -15,6 +16,7 @@ export default async function KitchenPage({ params }: PageProps<"/dashboard/[res
   const ctx = await getDashboardContext(restaurantId);
   const base = `/dashboard/${restaurantId}`;
 
+  if (featureBlock(ctx, "kitchen") === "switch") return <NotAvailable title={t("kitchen.title")} backHref={base} />;
   if (!planHas(ctx.plan, "kitchen")) {
     return (
       <Card className="space-y-3">
@@ -36,7 +38,9 @@ export default async function KitchenPage({ params }: PageProps<"/dashboard/[res
         <h1 className="text-2xl font-extrabold">{t("kitchen.title")}</h1>
         <p className="text-muted">{t("kitchen.intro")}</p>
       </div>
-      {ctx.branch.orderMode !== "kitchen" ? (
+      {!ctx.switches.order_kitchen ? (
+        <Alert tone="info">{t("kitchen.offSwitch")}</Alert>
+      ) : ctx.branch.orderMode !== "kitchen" ? (
         <Alert tone="info">
           {t("kitchen.offMode")}{" "}
           {ctx.role !== "staff" ? (

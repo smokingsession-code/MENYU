@@ -41,6 +41,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/directory" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.directory")}
           </Link>
+          <Link href="/admin/features" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
+            {t("admin.nav.features")}
+          </Link>
           <Link href="/admin/settings" className="flex min-h-11 shrink-0 items-center px-3 font-bold text-brand">
             {t("admin.nav.settings")}
           </Link>

@@ -69,7 +69,7 @@ test.describe("ordering: show the waiter, the kitchen screen, loyalty stamps and
     await expect(order.getByText("-30%")).toBeVisible();
     await expect(order.getByRole("region", { name: "Loyalty card" })).toContainText("3 stamps = a free juice");
     await order.getByRole("button", { name: "Cash" }).click();
-    await expect(order.getByRole("link", { name: "Send on WhatsApp" })).toHaveCount(0);
+    await expect(order.getByRole("link", { name: "Send order on WhatsApp" })).toHaveCount(0);
     await order.getByRole("button", { name: "Show to waiter" }).click();
 
     const bill = page.getByRole("dialog", { name: "Show this to your waiter" });
@@ -236,7 +236,7 @@ test.describe("Menus near me: deals and this week's top places", () => {
       await db.from("restaurants").update({ directory_status: "approved" }).eq("id", p.restaurantId).throwOnError();
       await db.from("branches").update({ area }).eq("id", p.branchId).throwOnError();
     }
-    await db.from("settings").upsert({ key: "directory_enabled", value: true }).throwOnError();
+    await db.from("feature_flags").update({ enabled: true }).in("key", ["directory", "rankings"]).throwOnError();
     const view = (p: { restaurantId: string; branchId: string }, s: string) => ({ restaurant_id: p.restaurantId, branch_id: p.branchId, type: "menu_view", session_id: s });
     await db.from("events").insert([view(places[0], "aaaaaaaa1"), view(places[0], "aaaaaaaa2"), view(places[0], "aaaaaaaa3"), view(places[1], "aaaaaaaa4")]).throwOnError();
     const dish = await itemId(places[1].restaurantId, "Dish 3");

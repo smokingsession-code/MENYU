@@ -72,7 +72,7 @@ export default async function MenuPage({ params, searchParams }: PageProps<"/das
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-extrabold">{mode === "soldout" ? t("editor.staffTitle") : t("editor.title")}</h1>
-        {mode === "edit" ? (
+        {mode === "edit" && (ctx.role === "admin" || ctx.switches.menu_import) ? (
           <ButtonLink href={`/dashboard/${restaurantId}/import`} variant="outline" size="sm">
             {t("editor.fromPhotos")}
           </ButtonLink>

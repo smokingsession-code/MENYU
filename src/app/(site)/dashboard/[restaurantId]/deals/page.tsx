@@ -3,11 +3,11 @@ import { connection } from "next/server";
 import { DealsManager, type DealDish, type LiveDeal } from "@/components/dashboard/deals-manager";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { featureBlock, getDashboardContext, hasFeature } from "@/lib/dashboard";
 import { formatClock, openStatus } from "@/lib/hours";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -23,7 +23,8 @@ export default async function DealsPage({ params }: PageProps<"/dashboard/[resta
   if (ctx.role === "staff") notFound();
   const base = `/dashboard/${restaurantId}`;
 
-  if (!planHas(ctx.plan, "specials") || !ctx.canEditMenu) {
+  if (featureBlock(ctx, "specials") === "switch") return <NotAvailable title={t("deals.title")} backHref={base} />;
+  if (!hasFeature(ctx, "specials") || !ctx.canEditMenu) {
     return (
       <Card className="space-y-3">
         <h1 className="text-2xl font-extrabold">{t("deals.title")}</h1>

@@ -1,6 +1,9 @@
 import sharp from "sharp";
 import { BRAND } from "@/config/brand";
+import { effectiveOrderMode } from "@/config/features";
 import { planHas } from "@/config/plans";
+import { loadRestaurantSwitches } from "@/lib/features";
+import { createClient } from "@/lib/supabase/server";
 import { getTranslator } from "@/lib/i18n";
 import { imageUrl, pickWidth } from "@/lib/images/shared";
 import { buildPrintPdf, type PrintEntry } from "@/lib/print/pdf";
@@ -40,7 +43,14 @@ export async function GET(request: Request, { params }: RouteContext<"/api/print
     }
   }
 
-  const ordering = planHas(restaurant.plan, "whatsapp_ordering");
+  // "Order on WhatsApp" only when that is how this branch takes orders now.
+  const supabase = await createClient();
+  const [{ data: settings }, { switches }] = await Promise.all([
+    supabase.from("branches").select("order_mode, whatsapp").eq("id", branch.id).maybeSingle(),
+    loadRestaurantSwitches(supabase, restaurant.id),
+  ]);
+  const mode = settings ? effectiveOrderMode(settings.order_mode as "waiter" | "whatsapp" | "kitchen", settings.whatsapp, restaurant.plan, switches) : null;
+  const ordering = mode === "whatsapp";
   const pdf = await buildPrintPdf({
     restaurantName: restaurant.name,
     brandColor: restaurant.brandColor,

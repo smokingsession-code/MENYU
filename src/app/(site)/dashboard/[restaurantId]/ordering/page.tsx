@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderingForm } from "@/components/dashboard/ordering-form";
 import { Alert } from "@/components/ui/card";
+import { NotAvailable } from "@/components/dashboard/not-available";
+import { effectiveOrderMode } from "@/config/features";
 import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { getDashboardContext, hasFeature } from "@/lib/dashboard";
 import { getTranslator, sectionStrings } from "@/lib/i18n";
 import { formatPhoneLocal } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
@@ -17,7 +19,19 @@ export default async function OrderingPage({ params }: PageProps<"/dashboard/[re
   if (ctx.role === "staff") notFound();
   const b = ctx.branch;
 
-  const canLoyalty = planHas(ctx.plan, "loyalty");
+  const sw = ctx.switches;
+  // Only what the admin has switched on is shown.
+  const modes = { waiter: sw.order_waiter, whatsapp: sw.order_whatsapp, kitchen: sw.order_kitchen && sw.kitchen_screen };
+  const anyMode = planHas(ctx.plan, "whatsapp_ordering") && (modes.waiter || modes.whatsapp || modes.kitchen);
+  const showPayments = sw.payments;
+  const showLoyalty = sw.loyalty;
+  if (!anyMode && !showPayments && !showLoyalty) return <NotAvailable title={t("ordering.title")} backHref={`/dashboard/${restaurantId}`} />;
+  const canLoyalty = hasFeature(ctx, "loyalty");
+  const effective = effectiveOrderMode(b.orderMode, b.whatsapp, ctx.plan, sw);
+  const fallbackNote =
+    anyMode && effective && effective !== b.orderMode
+      ? t("ordering.modeOffHint", { mode: t(`ordering.modes.${b.orderMode}`), fallback: t(`ordering.modes.${effective}`) })
+      : null;
   const supabase = await createClient();
   const [{ data: r }, cards, used] = await Promise.all([
     supabase
@@ -70,7 +84,12 @@ export default async function OrderingPage({ params }: PageProps<"/dashboard/[re
           }}
           whatsapp={b.whatsapp ? formatPhoneLocal(b.whatsapp) : null}
           momoCodes={momoCodes}
-          canKitchen={planHas(ctx.plan, "kitchen")}
+          canKitchen={hasFeature(ctx, "kitchen")}
+          modes={anyMode ? modes : { waiter: false, whatsapp: false, kitchen: false }}
+          noModes={planHas(ctx.plan, "whatsapp_ordering") && !anyMode ? t("ordering.noModes") : null}
+          fallbackNote={fallbackNote}
+          showPayments={showPayments}
+          showLoyalty={showLoyalty}
           canLoyalty={canLoyalty}
           loyaltyStats={canLoyalty && (cards.count ?? 0) > 0 ? t("ordering.loyaltyStats", { cards: cards.count ?? 0, used: rewardsUsed }) : null}
           s={{ ...sectionStrings("en", "ordering"), optional: t("common.optional"), saving: t("common.saving") }}

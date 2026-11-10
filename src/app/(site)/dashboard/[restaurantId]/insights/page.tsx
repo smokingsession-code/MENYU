@@ -4,11 +4,12 @@ import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { ColumnChart, RankedBars, StatTile, type Bar } from "@/components/dashboard/insights-charts";
 import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { featureBlock, getDashboardContext } from "@/lib/dashboard";
 import { DAY_KEYS, formatClock } from "@/lib/hours";
 import { getTranslator } from "@/lib/i18n";
 import { formatUGX } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { NotAvailable } from "@/components/dashboard/not-available";
 
 const t = getTranslator("en");
 
@@ -50,6 +51,7 @@ export default async function InsightsPage({ params, searchParams }: PageProps<"
   if (ctx.role === "staff") notFound();
   const base = `/dashboard/${restaurantId}`;
 
+  if (featureBlock(ctx, "insights") === "switch") return <NotAvailable title={t("insights.title")} backHref={base} />;
   if (!planHas(ctx.plan, "insights")) {
     return (
       <Card className="space-y-3">

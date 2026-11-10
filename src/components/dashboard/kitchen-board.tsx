@@ -64,7 +64,7 @@ export function KitchenBoard({
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/kitchen?b=${branchId}`, { cache: "no-store" });
+      const res = await fetch(`/api/kitchen?r=${restaurantId}&b=${branchId}`, { cache: "no-store" });
       if (!res.ok) throw new Error(String(res.status));
       const next = (await res.json()) as KitchenBoardData;
       const fresh = next.tickets.filter((t) => t.status === "new" && !known.current.has(t.id));
@@ -75,7 +75,7 @@ export function KitchenBoard({
     } catch {
       setOffline(true);
     }
-  }, [branchId, sound]);
+  }, [restaurantId, branchId, sound]);
 
   useEffect(() => {
     let timer: number | undefined;

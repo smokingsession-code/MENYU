@@ -4,14 +4,15 @@ import { StatTile } from "@/components/dashboard/insights-charts";
 import { Alert, Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
+import { visiblePlanLines } from "@/config/features";
 import { PLANS, planHas } from "@/config/plans";
 import { billingSummary, needsAttention } from "@/lib/billing/status";
-import { getDashboardContext } from "@/lib/dashboard";
+import { getDashboardContext, hasFeature } from "@/lib/dashboard";
 import { formatDate } from "@/lib/dates";
 import { formatUGX } from "@/lib/money";
 import { publicEnv } from "@/lib/env";
 import { weeklyRanges } from "@/lib/hours";
-import { getTranslator, type MessageKey } from "@/lib/i18n";
+import { getTranslator, sectionStrings, type MessageKey } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
 const t = getTranslator("en");
@@ -23,19 +24,22 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
   const menuUrl = `${publicEnv.siteUrl}/r/${ctx.branch.slug}`;
 
   const supabase = await createClient();
-  const pro = planHas(ctx.plan, "feedback");
+  const pro = hasFeature(ctx, "feedback");
   await connection();
   const now = new Date();
   const today = new Date(now.getTime() + 3 * 3_600_000).toISOString().slice(0, 10);
-  const ordering = planHas(ctx.plan, "whatsapp_ordering");
+  // Ordering at all, and the "How diners order" page (ways of ordering, cash and loyalty stamps).
+  const sw = ctx.switches;
+  const ordering = planHas(ctx.plan, "whatsapp_ordering") && (sw.order_waiter || sw.order_whatsapp || (sw.order_kitchen && hasFeature(ctx, "kitchen")));
+  const orderingSettings = ordering || (planHas(ctx.plan, "whatsapp_ordering") && (sw.payments || hasFeature(ctx, "loyalty")));
   const [{ data: todays }, { data: liveDeals }, { count: kitchenNew }] = await Promise.all([
     ordering && ctx.role !== "staff"
       ? supabase.from("orders").select("total_ugx").eq("branch_id", ctx.branch.id).eq("local_date", today).neq("status", "cancelled").limit(5000)
       : Promise.resolve({ data: null }),
-    planHas(ctx.plan, "specials") && ctx.role !== "staff"
+    hasFeature(ctx, "specials") && ctx.role !== "staff"
       ? supabase.from("deals").select("percent_off, items(name)").eq("branch_id", ctx.branch.id).is("deleted_at", null).gt("ends_at", now.toISOString())
       : Promise.resolve({ data: null }),
-    planHas(ctx.plan, "kitchen")
+    hasFeature(ctx, "kitchen")
       ? supabase.from("orders").select("id", { count: "exact", head: true }).eq("branch_id", ctx.branch.id).eq("mode", "kitchen").eq("status", "new")
       : Promise.resolve({ count: 0 }),
   ]);
@@ -62,6 +66,24 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
     ...(PLANS[ctx.plan].features.table_qr ? [{ done: (tables ?? 0) > 0, label: t("home2.stepTables"), href: `${base}/tables` }] : []),
   ];
   const remaining = steps.filter((s) => !s.done);
+  // Pro tools that are switched on (and in the plan) for this restaurant.
+  const proTools: { href: string; title: string; hint: string; badge: number; badgeText?: string }[] = [
+    ...(hasFeature(ctx, "specials")
+      ? [{ href: `${base}/deals`, title: t("home2.sellToday"), hint: dealsText ? t("home2.dealsLive", { deals: dealsText }) : t("home2.sellTodayHint"), badge: 0 }]
+      : []),
+    ...(hasFeature(ctx, "kitchen")
+      ? [{ href: `${base}/kitchen`, title: t("home2.kitchen"), hint: t("home2.kitchenHint"), badge: kitchenNew ?? 0, badgeText: t("home2.kitchenNew", { count: kitchenNew ?? 0 }) }]
+      : []),
+    ...(hasFeature(ctx, "specials") ? [{ href: `${base}/specials`, title: t("home2.specials"), hint: t("home2.specialsHint"), badge: 0 }] : []),
+    ...(hasFeature(ctx, "feedback")
+      ? [{ href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0, badgeText: t("home2.feedbackUnread", { count: unread ?? 0 }) }]
+      : []),
+    ...(hasFeature(ctx, "insights") ? [{ href: `${base}/insights`, title: t("home2.insights"), hint: t("home2.insightsHint"), badge: 0 }] : []),
+    ...(planHas(ctx.plan, "staff") ? [{ href: `${base}/staff`, title: t("home2.staff"), hint: t("home2.staffHint"), badge: 0 }] : []),
+    ...(planHas(ctx.plan, "branches") ? [{ href: `${base}/branches`, title: t("home2.branches"), hint: t("home2.branchesHint"), badge: 0 }] : []),
+  ];
+  // What Pro would add, leaving out anything switched off.
+  const proLines = visiblePlanLines(sectionStrings("en", "billing"), "pro", ctx.globalSwitches, ["features.pro.everything"]);
   const sub = ctx.subscription;
   const statusDate = sub?.status === "trial" ? sub.trial_ends_at : sub?.paid_until;
   const billing = sub ? billingSummary(sub, new Date(), ctx.branches.length) : null;
@@ -162,7 +184,7 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
         <ButtonLink href={`${base}/menu`} variant="outline" className="min-h-16">
           {ctx.role === "staff" ? t("home2.quickSoldOut") : t("home2.quickMenu")}
         </ButtonLink>
-        {ctx.role === "staff" && planHas(ctx.plan, "kitchen") ? (
+        {ctx.role === "staff" && hasFeature(ctx, "kitchen") ? (
           <ButtonLink href={`${base}/kitchen`} variant="outline" className="min-h-16">
             {t("home2.kitchen")}
             {kitchenNew ? ` (${kitchenNew})` : ""}
@@ -179,7 +201,7 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
             <ButtonLink href={`${base}/profile`} variant="outline" className="min-h-16">
               {t("home2.quickProfile")}
             </ButtonLink>
-            {ordering ? (
+            {orderingSettings ? (
               <ButtonLink href={`${base}/ordering`} variant="outline" className="col-span-2 min-h-16">
                 {t("home2.ordering")}
               </ButtonLink>
@@ -188,19 +210,11 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
         ) : null}
       </div>
 
-      {ctx.role !== "staff" && planHas(ctx.plan, "specials") ? (
+      {ctx.role !== "staff" && proTools.length ? (
         <Card className="space-y-1">
           <h2 className="text-lg font-extrabold">{t("home2.proTitle")}</h2>
           <ul className="divide-y divide-line">
-            {[
-              { href: `${base}/deals`, title: t("home2.sellToday"), hint: dealsText ? t("home2.dealsLive", { deals: dealsText }) : t("home2.sellTodayHint"), badge: 0 },
-              { href: `${base}/kitchen`, title: t("home2.kitchen"), hint: t("home2.kitchenHint"), badge: kitchenNew ?? 0, badgeText: t("home2.kitchenNew", { count: kitchenNew ?? 0 }) },
-              { href: `${base}/specials`, title: t("home2.specials"), hint: t("home2.specialsHint"), badge: 0 },
-              { href: `${base}/feedback`, title: t("home2.feedback"), hint: t("home2.feedbackHint"), badge: unread ?? 0, badgeText: t("home2.feedbackUnread", { count: unread ?? 0 }) },
-              { href: `${base}/insights`, title: t("home2.insights"), hint: t("home2.insightsHint"), badge: 0 },
-              { href: `${base}/staff`, title: t("home2.staff"), hint: t("home2.staffHint"), badge: 0 },
-              { href: `${base}/branches`, title: t("home2.branches"), hint: t("home2.branchesHint"), badge: 0 },
-            ].map((tool) => (
+            {proTools.map((tool) => (
               <li key={tool.href}>
                 <Link href={tool.href} className="flex min-h-14 items-center justify-between gap-3 py-2">
                   <span>
@@ -208,7 +222,7 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
                     <span className="block text-sm text-muted">{tool.hint}</span>
                   </span>
                   {tool.badge > 0 ? (
-                    <span className="shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold">{"badgeText" in tool ? tool.badgeText : tool.badge}</span>
+                    <span className="shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold">{tool.badgeText ?? tool.badge}</span>
                   ) : (
                     <span aria-hidden="true" className="text-xl text-muted">›</span>
                   )}
@@ -218,10 +232,14 @@ export default async function RestaurantHome({ params }: PageProps<"/dashboard/[
           </ul>
         </Card>
       ) : null}
-      {ctx.role !== "staff" && !planHas(ctx.plan, "specials") && ctx.plan !== "free" ? (
+      {ctx.role !== "staff" && ctx.plan === "standard" && proLines.length ? (
         <Card className="space-y-2">
           <h2 className="text-lg font-extrabold">{t("home2.proUpsellTitle")}</h2>
-          <p>{t("home2.proUpsellBody")}</p>
+          <ul className="list-disc space-y-0.5 pl-5">
+            {proLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
           <ButtonLink href={`${base}/billing`} variant="outline" size="sm">
             {t("home2.proUpsellCta")}
           </ButtonLink>

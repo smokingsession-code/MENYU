@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { BranchSwitcher } from "@/components/dashboard/branch-switcher";
 import { NavBar, type NavItem } from "@/components/dashboard/nav-bar";
-import { planHas } from "@/config/plans";
-import { getDashboardContext } from "@/lib/dashboard";
+import { getDashboardContext, hasFeature } from "@/lib/dashboard";
 import { getTranslator } from "@/lib/i18n";
 
 const t = getTranslator("en");
@@ -20,8 +19,8 @@ async function DashboardNav({ params }: { params: Promise<{ restaurantId: string
     items.push({ href: `${base}/profile`, label: t("nav.profile"), icon: "profile" });
   } else {
     // Staff work the kitchen screen and see feedback; owners reach both from the home screen.
-    if (planHas(ctx.plan, "kitchen")) items.push({ href: `${base}/kitchen`, label: t("nav.kitchen"), icon: "kitchen" });
-    if (planHas(ctx.plan, "feedback")) items.push({ href: `${base}/feedback`, label: t("nav.feedback"), icon: "feedback" });
+    if (hasFeature(ctx, "kitchen")) items.push({ href: `${base}/kitchen`, label: t("nav.kitchen"), icon: "kitchen" });
+    if (hasFeature(ctx, "feedback")) items.push({ href: `${base}/feedback`, label: t("nav.feedback"), icon: "feedback" });
   }
   return <NavBar items={items} label={ctx.name} />;
 }

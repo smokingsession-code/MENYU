@@ -9,4 +9,7 @@ export default function globalSetup() {
   const url = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
   if (!/127\.0\.0\.1|localhost/.test(url)) throw new Error("e2e tests only run against the local database");
   execFileSync("psql", [url, "-qc", "delete from public.rate_limits"], { stdio: "inherit" });
+  // Every feature switch on: the tests exercise every feature (the feature
+  // switch tests turn them off and back on themselves).
+  execFileSync("psql", [url, "-qc", "update public.feature_flags set enabled = true; delete from public.restaurant_features;"], { stdio: "inherit" });
 }

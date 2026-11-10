@@ -23,3 +23,21 @@
 #menu-deals {
   display: none;
 }
+
+/* Christmas theme (Admin > Features; owners switch it on for their menu):
+   a garland along the top, a little snow on the cover and a greeting. Pure
+   CSS, drawn with the page, so nothing moves and nothing extra downloads. */
+.xmas-garland {
+  background: repeating-linear-gradient(90deg, #c8102e 0 18px, #f4b400 18px 22px, #1e5b3a 22px 40px, #f4b400 40px 44px);
+}
+.xmas-snow {
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.9) 1.5px, transparent 2px),
+    radial-gradient(circle, rgb(255 255 255 / 0.65) 1px, transparent 1.5px);
+  background-size: 34px 34px, 21px 21px;
+  background-position: 0 0, 11px 13px;
+}
+.xmas-greeting {
+  background: #c8102e;
+  color: #ffffff;
+}

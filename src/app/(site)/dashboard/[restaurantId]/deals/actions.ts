@@ -2,9 +2,8 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
-import { planHas } from "@/config/plans";
 import { requireRestaurantAccess } from "@/lib/auth";
-import { getDashboardContext } from "@/lib/dashboard";
+import { getDashboardContext, hasFeature } from "@/lib/dashboard";
 import { getTranslator } from "@/lib/i18n";
 import { expireMenu } from "@/lib/menu/expire";
 import { createClient } from "@/lib/supabase/server";
@@ -33,7 +32,7 @@ export async function startDealAction(restaurantId: string, branchId: string, in
     return { ok: false, field, error };
   }
   const ctx = await getDashboardContext(restaurantId, branchId);
-  if (!ctx.canEditMenu || !planHas(ctx.plan, "specials") || ctx.branch.id !== branchId) return { ok: false, error: t("deals.errors.failed") };
+  if (!ctx.canEditMenu || !hasFeature(ctx, "specials") || ctx.branch.id !== branchId) return { ok: false, error: t("deals.errors.failed") };
 
   const v = parsed.data;
   const supabase = await createClient();
